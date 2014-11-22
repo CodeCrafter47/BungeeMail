@@ -1,0 +1,46 @@
+#
+# BungeeMail is a mail system for bungeecord
+# It's probably similar to essentials /mail
+#
+
+# Text Format
+# ===========
+#
+# Color codes work with `&` or `§`.
+# italic text using `*` or `_`: `this is *italic* and this is _italic_ too`
+# bold text using `**` or `__`: `this is **bold** and this is __bold__ too`
+# links: `<spigotmc.org>`
+# links with custom text: `click [here](spigotmc.org)`
+# text with tooltip: `[text]{this appears if you hover over the text} ...`
+# link with tooltip: `click [here](spigotmc.org){for the best plugins :D}`
+# execute command: `> [DAY](/time set 6000) | [NIGHT](/time set 18000)`
+# propose command: `[message the developer][/w CodeCrafter47 ]`
+# Of cause commands can have tooltips too.
+# You can escape special char with a backslash
+
+# whether clickable things in chat are to be underlined
+underlineLinks: true
+
+# Messages
+noNewMessages: "&eYou don't have any new messages"
+listallHeader: "&9\\[==== Showing %start% to %end% of %max% mails === [next](/mail listall %next%) ====]"
+listHeader: "&9\\[==== Showing %visible% of %max% messages. [more](/mail list) ====]"
+oldMessage: "&7From %sender%: &f%message%"
+newMessage: "&6From %sender%: &f%message%    *&6[Reply][/mail %sender% ]"
+receivedNewMessage: "&cYou just received a new mail. Type [/mail list](/mail list) to see it."
+messageSent: "&aYour mail has been sent successfully."
+messageSentToAll: "&aYou just sent %num% mails."
+unknownTarget: "&cUnknown target: You may only send mails to players which have played on the server before."
+help: "&b[/mail help][/mail help] &eshows this cool help page%newline%&b[/mail list][/mail list] &eshows new mails%newline%&b[/mail listall][/mail listall] &eshows all mails (also ones that you have already read)%newline%&b[/mail player message][/mail ] &esend a mail%newline%&b[/mail sendall message][/mail sendall ] &esend **many** mails :D"
+noPermission: "&cYou. Don't. Have. Permission."
+
+# SQL Connection information
+# if you set useMySQL to false all data will be stored in a flatfile
+useMySQL: false
+
+# if you set useMySQL to true please enter valid connection inormation
+mysql_hostname: localhost
+mysql_port: 3306
+mysql_database: minecraft
+mysql_username: root
+mysql_password: superSecretPassword
