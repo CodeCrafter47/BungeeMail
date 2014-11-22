@@ -18,16 +18,6 @@ public class MailCommand extends Command {
 			printHelp(commandSender);
 			return;
 		}
-		if(plugin.getProxy().getPlayer(args[0]) != null){
-			// send mail
-			String target = args[0];
-			String text = "";
-			for(int i=1; i<args.length; i++){
-				text += args[i] + " ";
-			}
-			plugin.sendMail((ProxiedPlayer)commandSender, target, text);
-			return;
-		}
 		switch (args[0]){
 			case "view":
 			case "list":
@@ -52,8 +42,17 @@ public class MailCommand extends Command {
 				plugin.sendMailToAll((ProxiedPlayer)commandSender, text);
 				return;
 			case "help":
-			default:
 				printHelp(commandSender);
+				return;
+			default:
+				// send mail
+				String target = args[0];
+				text = "";
+				for(int i=1; i<args.length; i++){
+					text += args[i] + " ";
+				}
+				plugin.sendMail((ProxiedPlayer)commandSender, target, text);
+				return;
 		}
 	}
 
