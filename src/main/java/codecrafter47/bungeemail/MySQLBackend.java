@@ -62,6 +62,9 @@ public class MySQLBackend implements IStorageBackend, Listener {
 
 	@SneakyThrows
 	@Override public void saveMessage(Message message) {
+		if(!sql.isOpen()){
+			sql.open();
+		}
 		if(message instanceof SQLMessage){
 			sql.query("update bungeemail_mails set senderName='" + message.getSenderName() + "', senderUUID='"+message.getSenderUUID()+"'" +
 					", recipient='"+message.getRecipient()+"', message='"+escapeBadChars(message.getMessage())+"'" +
@@ -75,15 +78,33 @@ public class MySQLBackend implements IStorageBackend, Listener {
 
 	@SneakyThrows
 	@Override public void markRead(Message message) {
+		if(!sql.isOpen()){
+			sql.open();
+		}
 		sql.query("update bungeemail_mails set `read`=1 where id='" + message.hashCode() + "'");
 	}
 
+	@SneakyThrows
 	@Override public void delete(Message message) {
-		throw new UnsupportedOperationException("MySQL backend does not support deleting mails yet");
+		if(!sql.isOpen()){
+			sql.open();
+		}
+		sql.query("delete from bungeemail_mails where id='" + message.hashCode() + "'");
+	}
+
+	@SneakyThrows
+	@Override public void delete(int id) {
+		if(!sql.isOpen()){
+			sql.open();
+		}
+		sql.query("delete from bungeemail_mails where id='" + id + "'");
 	}
 
 	@SneakyThrows
 	@Override public UUID getUUIDForName(String name) {
+		if(!sql.isOpen()){
+			sql.open();
+		}
 		ResultSet rs = sql.query("select * from bungeemail_uuids where username='" + name + "'");
 		while (rs.next()){
 			return UUID.fromString(rs.getString("uuid"));
@@ -93,6 +114,9 @@ public class MySQLBackend implements IStorageBackend, Listener {
 
 	@SneakyThrows
 	@Override public Collection<UUID> getAllKnownUUIDs() {
+		if(!sql.isOpen()){
+			sql.open();
+		}
 		HashSet<UUID> uuids = new HashSet<>();
 		ResultSet rs = sql.query("select * from bungeemail_uuids");
 		while (rs.next()){
@@ -103,6 +127,9 @@ public class MySQLBackend implements IStorageBackend, Listener {
 
 	@SneakyThrows
 	@Override public Collection<String> getKnownUsernames() {
+		if(!sql.isOpen()){
+			sql.open();
+		}
 		HashSet<String> strings = new HashSet<>();
 		ResultSet rs = sql.query("select * from bungeemail_uuids");
 		while (rs.next()){
@@ -116,6 +143,9 @@ public class MySQLBackend implements IStorageBackend, Listener {
 		plugin.getProxy().getScheduler().schedule(plugin, new Runnable() {
 			@SneakyThrows
 			@Override public void run() {
+				if(!sql.isOpen()){
+					sql.open();
+				}
 				ResultSet rs = sql.query("select * from bungeemail_uuids where uuid='"+event.getPlayer().getUniqueId()+"'");
 				boolean upToDate = false;
 				boolean there = false;

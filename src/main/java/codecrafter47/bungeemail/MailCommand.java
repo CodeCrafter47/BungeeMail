@@ -52,6 +52,24 @@ public class MailCommand extends Command {
 			case "help":
 				printHelp(commandSender);
 				return;
+			case "del":
+				if(args.length < 2){
+					commandSender.sendMessage("/mail del <all|read|#>");
+				}
+				if(args[1].equalsIgnoreCase("all")){
+					for(Message msg: plugin.getStorage().getMessagesFor(((ProxiedPlayer)commandSender).getUniqueId(), false))
+						plugin.getStorage().delete(msg);
+					commandSender.sendMessage(ChatUtil.parseString(plugin.config.getString("deletedAll", "&aYou deleted all mails.")));
+				} else if(args[1].equalsIgnoreCase("read")){
+					for(Message msg: plugin.getStorage().getMessagesFor(((ProxiedPlayer)commandSender).getUniqueId(), true))
+						plugin.getStorage().delete(msg);
+					commandSender.sendMessage(ChatUtil.parseString(plugin.config.getString("deletedRead", "&aYou deleted all read mails.")));
+				} else {
+					int id = Integer.valueOf(args[1]);
+					plugin.getStorage().delete(id);
+					commandSender.sendMessage(ChatUtil.parseString(plugin.config.getString("deletedSingle", "&aYou deleted 1 message.")));
+				}
+				return;
 			default:
 				// send mail
 				target = args[0];

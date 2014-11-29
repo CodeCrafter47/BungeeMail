@@ -25,14 +25,17 @@ underlineLinks: true
 noNewMessages: "&eYou don't have any new messages"
 listallHeader: "&9\\[==== Showing %start% to %end% of %max% mails === [next](/mail listall %next%) ====]"
 listHeader: "&9\\[==== Showing %visible% of %max% messages. [more](/mail list) ====]"
-oldMessage: "&7From %sender%: &f%message%"
+oldMessage: "&7From %sender%: &f%message%    *&6[delete](/mail del %id% )"
 newMessage: "&6From %sender%: &f%message%    *&6[Reply][/mail %sender% ]"
 receivedNewMessage: "&cYou just received a new mail. Type [/mail list](/mail list) to see it."
 messageSent: "&aYour mail has been sent successfully."
 messageSentToAll: "&aYou just sent %num% mails."
 unknownTarget: "&cUnknown target: You may only send mails to players which have played on the server before."
-help: "&b[/mail help][/mail help] &eshows this cool help page%newline%&b[/mail list][/mail list] &eshows new mails%newline%&b[/mail listall][/mail listall] &eshows all mails (also ones that you have already read)%newline%&b[/mail player message][/mail ] &esend a mail%newline%&b[/mail sendall message][/mail sendall ] &esend **many** mails :D"
+help: "&b[/mail help][/mail help] &eshows this cool help page%newline%&b[/mail list][/mail list] &eshows new mails%newline%&b[/mail listall][/mail listall] &eshows all mails (also ones that you have already read)%newline%&b[/mail player message][/mail ] &esend a mail%newline%&b[/mail sendall message][/mail sendall ] &esend **many** mails :D%newline%&b[/mail del all|read|#][/mail del ] &edelete mails"
 noPermission: "&cYou. Don't. Have. Permission."
+deletedSingle: "&aYou deleted 1 message."
+deletedRead: "&aYou deleted all old mails."
+deletedAll: "&aYou deleted all mails."
 
 # SQL Connection information
 # if you set useMySQL to false all data will be stored in a flatfile

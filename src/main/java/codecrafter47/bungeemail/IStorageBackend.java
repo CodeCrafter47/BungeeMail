@@ -16,4 +16,6 @@ public interface IStorageBackend {
 	public Collection<UUID> getAllKnownUUIDs();
 	// used for tab-complete
 	public Collection<String> getKnownUsernames();
+
+	void delete(int id);
 }

@@ -82,6 +82,15 @@ public class FlatFileBackend implements IStorageBackend, Listener {
 		data.data.remove(message);
 	}
 
+	@Override public void delete(int id) {
+		Iterator<Message> iterator = data.data.iterator();
+		while (iterator.hasNext()){
+			if(iterator.next().hashCode() == id){
+				iterator.remove();
+			}
+		}
+	}
+
 	@Override public UUID getUUIDForName(String name) {
 		return data.uuidMap.get(name);
 	}

@@ -78,6 +78,7 @@ public class BungeeMail extends Plugin {
 				player.sendMessage(ChatUtil.parseString(config.getString(message.isRead() ? "oldMessage" : "newMessage").
 						replaceAll("%sender%", ChatUtil.escapeSpecialChars(message.getSenderName())).
 						replaceAll("%time%", formatTime(message.getTime())).
+						replaceAll("%id%", "" + message.hashCode()).
 						replaceAll("%message%", Matcher.quoteReplacement(message.getMessage()))));
 				storage.markRead(message);
 			}
