@@ -41,12 +41,20 @@ public class MailCommand extends Command {
 				}
 				plugin.sendMailToAll((ProxiedPlayer)commandSender, text);
 				return;
+			case "send":
+				String target = args[1];
+				text = "";
+				for(int i=2; i<args.length; i++){
+					text += args[i] + " ";
+				}
+				plugin.sendMail((ProxiedPlayer)commandSender, target, text);
+				return;
 			case "help":
 				printHelp(commandSender);
 				return;
 			default:
 				// send mail
-				String target = args[0];
+				target = args[0];
 				text = "";
 				for(int i=1; i<args.length; i++){
 					text += args[i] + " ";
