@@ -55,6 +55,7 @@ public class MailCommand extends Command {
 			case "del":
 				if(args.length < 2){
 					commandSender.sendMessage("/mail del <all|read|#>");
+					return;
 				}
 				if(args[1].equalsIgnoreCase("all")){
 					for(Message msg: plugin.getStorage().getMessagesFor(((ProxiedPlayer)commandSender).getUniqueId(), false))
