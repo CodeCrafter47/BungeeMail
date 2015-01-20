@@ -3,6 +3,7 @@ package codecrafter47.bungeemail;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.SneakyThrows;
+import lombok.Synchronized;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -31,6 +32,7 @@ public class FlatFileBackend implements IStorageBackend, Listener {
 	}
 
 	@SneakyThrows
+	@Synchronized
 	private void readData() {
 		if(file.exists()){
 			try {
@@ -48,6 +50,7 @@ public class FlatFileBackend implements IStorageBackend, Listener {
 	}
 
 	@SneakyThrows
+	@Synchronized
 	private void saveData() {
 		if(file.exists()){
 			file.delete();
@@ -58,6 +61,7 @@ public class FlatFileBackend implements IStorageBackend, Listener {
 		fileWriter.close();
 	}
 
+	@Synchronized
 	@Override public List<Message> getMessagesFor(UUID uuid, boolean onlyNew) {
 		ArrayList<Message> messages = new ArrayList<>();
 		for(Message message: data.data){
@@ -66,6 +70,7 @@ public class FlatFileBackend implements IStorageBackend, Listener {
 		return messages;
 	}
 
+	@Synchronized
 	@Override public void saveMessage(Message message) {
 		if(!data.data.contains(message)){
 			data.data.add(message);
@@ -73,15 +78,18 @@ public class FlatFileBackend implements IStorageBackend, Listener {
 		saveData();
 	}
 
+	@Synchronized
 	@Override public void markRead(Message message) {
 		message.setRead(true);
 		saveData();
 	}
 
+	@Synchronized
 	@Override public void delete(Message message) {
 		data.data.remove(message);
 	}
 
+	@Synchronized
 	@Override public void delete(int id) {
 		Iterator<Message> iterator = data.data.iterator();
 		while (iterator.hasNext()){
@@ -91,18 +99,22 @@ public class FlatFileBackend implements IStorageBackend, Listener {
 		}
 	}
 
+	@Synchronized
 	@Override public UUID getUUIDForName(String name) {
 		return data.uuidMap.get(name);
 	}
 
+	@Synchronized
 	@Override public Collection<UUID> getAllKnownUUIDs() {
 		return data.uuidMap.values();
 	}
 
+	@Synchronized
 	@Override public Collection<String> getKnownUsernames() {
 		return data.uuidMap.keySet();
 	}
 
+	@Synchronized
 	@EventHandler
 	public void onJoin(PostLoginEvent event){
 		data.uuidMap.put(event.getPlayer().getName(), event.getPlayer().getUniqueId());
