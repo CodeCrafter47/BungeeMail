@@ -37,6 +37,11 @@ deletedSingle: "&aYou deleted 1 message."
 deletedRead: "&aYou deleted all old mails."
 deletedAll: "&aYou deleted all mails."
 
+# Login
+showMailsOnLogin: true
+# this is shown on login if the above is false; otherwise the player is shown the output of /mail view directly
+loginNewMails: "&aYou have %num% new mails. Type *[/mail view][/mail view]* to read them."
+
 # SQL Connection information
 # if you set useMySQL to false all data will be stored in a flatfile
 useMySQL: false

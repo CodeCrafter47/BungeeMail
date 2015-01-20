@@ -24,7 +24,11 @@ public class PlayerListener implements Listener {
 		final ProxiedPlayer player = event.getPlayer();
 		plugin.getProxy().getScheduler().schedule(plugin, new Runnable() {
 			@Override public void run() {
-				plugin.listMessages(player, 1, false, false);
+				if(plugin.config.getBoolean("showMailsOnLogin", true)) {
+					plugin.listMessages(player, 1, false, false);
+				} else {
+					plugin.showLoginInfo(player);
+				}
 			}
 		}, 1, TimeUnit.SECONDS);
 	}

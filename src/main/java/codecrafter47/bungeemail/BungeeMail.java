@@ -86,6 +86,14 @@ public class BungeeMail extends Plugin {
 		}
 	}
 
+	public void showLoginInfo(ProxiedPlayer player){
+		List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), true);
+		if(!messages.isEmpty()) {
+			player.sendMessage(ChatUtil.parseString(config.getString("loginNewMails",
+					"&aYou have %num% new mails. Type *[/mail view][/mail view]* to read them.").replace("%num%", "" + messages.size())));
+		}
+	}
+
 	private String formatTime(long time) {
 		return new SimpleDateFormat("hh:mm:ss").format(new Date(time));
 	}
