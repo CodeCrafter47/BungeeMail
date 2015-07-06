@@ -6,32 +6,43 @@
 # Text Format
 # ===========
 #
-# Color codes work with `&` or `§`.
-# italic text using `*` or `_`: `this is *italic* and this is _italic_ too`
-# bold text using `**` or `__`: `this is **bold** and this is __bold__ too`
-# links: `<spigotmc.org>`
-# links with custom text: `click [here](spigotmc.org)`
-# text with tooltip: `[text]{this appears if you hover over the text} ...`
-# link with tooltip: `click [here](spigotmc.org){for the best plugins :D}`
-# execute command: `> [DAY](/time set 6000) | [NIGHT](/time set 18000)`
-# propose command: `[message the developer][/w CodeCrafter47 ]`
-# Of cause commands can have tooltips too.
-# You can escape special char with a backslash
+# You can create links and access other formatting options with a syntax similar to bbcode. Vanilla color codes still
+# work.
+#
+# For example [b]this is bold[/b], [i]this is italic[/i], [u]this is underlined[/u] and [s]this is crossed out[/s].
+# The difference between the above and making something &lbold&r the vanilla way is, that the above makes all the
+# enclosed text bold, while &l makes bold everything until reaching the next color code.
+# Same for [color=...]
+#
+# How links will work is easy to guess, e.g. it's just [url]spigotmc.org[/url] or [url=click here]spigotmc.org[/url].
+# Executing commands works similar [command=/tp CodeCrafter47]click here[/command].
+#
+# Suggesting commands works with [suggest=/tp ]...[/suggest]
+# To create tooltips d [hover=Text magically appears when moving the mouse over]this[/hover].
+#
+# It is possible to use [nocolor][/nocolor] to prevent the use of legacy color codes in a block;
+# [nobbcode][/nobbcode] will prevent the use of bbcode in a block;
 
 # whether clickable things in chat are to be underlined
 underlineLinks: true
 
 # Messages
 noNewMessages: "&eYou don't have any new messages"
-listallHeader: "&9\\[==== Showing %start% to %end% of %max% mails === [next](/mail listall %next%) ====]"
-listHeader: "&9\\[==== Showing %visible% of %max% messages. [more](/mail list) ====]"
-oldMessage: "&7From %sender%: &f%message%    *&6[delete](/mail del %id% )"
-newMessage: "&6From %sender%: &f%message%    *&6[Reply][/mail %sender% ]"
-receivedNewMessage: "&cYou just received a new mail. Type [/mail list](/mail list) to see it."
+listallHeader: "&9[==== Showing %start% to %end% of %max% mails === [command=/mail listall %next%]next[/command] ====]"
+listHeader: "&9[==== Showing %visible% of %max% messages. [command=/mail list]more[/command] ====]"
+oldMessage: "&7From %sender%: &f%message%    &o&6[suggest=/mail del %id%]delete[/suggest]"
+newMessage: "&6From %sender%: &f%message%    &o&6[suggest=/mail %sender%]reply[/suggest]"
+receivedNewMessage: "&cYou just received a new mail. Type [command]/mail list[/command] to see it."
 messageSent: "&aYour mail has been sent successfully."
 messageSentToAll: "&aYou just sent %num% mails."
 unknownTarget: "&cUnknown target: You may only send mails to players which have played on the server before."
-help: "&b[/mail help][/mail help] &eshows this cool help page%newline%&b[/mail list][/mail list] &eshows new mails%newline%&b[/mail listall][/mail listall] &eshows all mails (also ones that you have already read)%newline%&b[/mail player message][/mail ] &esend a mail%newline%&b[/mail sendall message][/mail sendall ] &esend **many** mails :D%newline%&b[/mail del all|read|#][/mail del ] &edelete mails"
+help: |-
+  &b[suggest]/mail help[/suggest] &eshows this cool help page
+  &b[suggest]/mail list[/suggest] &eshows new mails
+  &b[suggest]/mail listall[/suggest] &eshows all mails (also ones that you have already read)
+  &b[suggest=/mail ]/mail <player> <message>[/suggest] &esend a mail
+  &b[suggest=/mail sendall ]/mail sendall message[/suggest] &esend [b]many[/b] mails :D
+  &b[suggest=/mail del ]/mail del all|read|#[/suggest] &edelete mails
 noPermission: "&cYou. Don't. Have. Permission."
 deletedSingle: "&aYou deleted 1 message."
 deletedRead: "&aYou deleted all old mails."
@@ -40,7 +51,7 @@ deletedAll: "&aYou deleted all mails."
 # Login
 showMailsOnLogin: true
 # this is shown on login if the above is false; otherwise the player is shown the output of /mail view directly
-loginNewMails: "&aYou have %num% new mails. Type *[/mail view][/mail view]* to read them."
+loginNewMails: "&aYou have %num% new mails. Type [i][command]/mail view[/command][/i] to read them."
 
 # SQL Connection information
 # if you set useMySQL to false all data will be stored in a flatfile

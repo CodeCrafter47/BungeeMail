@@ -33,7 +33,7 @@ public class MailCommand extends Command {
 				return;
 			case "sendall":
 				if(!commandSender.hasPermission("bungeemail.sendall")){
-					commandSender.sendMessage(ChatUtil.parseString(plugin.config.getString("noPermission", "&cYou. Don't. Have. Permission.")));
+					commandSender.sendMessage(ChatParser.parse(plugin.config.getString("noPermission", "&cYou. Don't. Have. Permission.")));
 					return;
 				}
 				String text = "";
@@ -61,15 +61,15 @@ public class MailCommand extends Command {
 				if(args[1].equalsIgnoreCase("all")){
 					for(Message msg: plugin.getStorage().getMessagesFor(((ProxiedPlayer)commandSender).getUniqueId(), false))
 						plugin.getStorage().delete(msg);
-					commandSender.sendMessage(ChatUtil.parseString(plugin.config.getString("deletedAll", "&aYou deleted all mails.")));
+					commandSender.sendMessage(ChatParser.parse(plugin.config.getString("deletedAll", "&aYou deleted all mails.")));
 				} else if(args[1].equalsIgnoreCase("read")){
 					for(Message msg: plugin.getStorage().getMessagesFor(((ProxiedPlayer)commandSender).getUniqueId(), true))
 						plugin.getStorage().delete(msg);
-					commandSender.sendMessage(ChatUtil.parseString(plugin.config.getString("deletedRead", "&aYou deleted all read mails.")));
+					commandSender.sendMessage(ChatParser.parse(plugin.config.getString("deletedRead", "&aYou deleted all read mails.")));
 				} else {
 					int id = Integer.valueOf(args[1]);
 					plugin.getStorage().delete(id);
-					commandSender.sendMessage(ChatUtil.parseString(plugin.config.getString("deletedSingle", "&aYou deleted 1 message.")));
+					commandSender.sendMessage(ChatParser.parse(plugin.config.getString("deletedSingle", "&aYou deleted 1 message.")));
 				}
 				return;
 			default:
@@ -86,7 +86,7 @@ public class MailCommand extends Command {
 
 	private void printHelp(CommandSender sender) {
 		for(String s: plugin.config.getString("help").split("%newline%")){
-			sender.sendMessage(ChatUtil.parseString(s));
+			sender.sendMessage(ChatParser.parse(s));
 		}
 	}
 }

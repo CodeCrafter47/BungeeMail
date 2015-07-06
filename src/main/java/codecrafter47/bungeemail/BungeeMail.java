@@ -60,7 +60,7 @@ public class BungeeMail extends Plugin {
 	public void listMessages(ProxiedPlayer player, int start, boolean listIfNotAvailable, boolean listReadMessages) {
 		List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), !listReadMessages);
 		if(messages.isEmpty() && listIfNotAvailable){
-			player.sendMessage(ChatUtil.parseString(config.getString("noNewMessages")));
+			player.sendMessage(ChatParser.parse(config.getString("noNewMessages")));
 		}
 		if(messages.isEmpty())return;
 		if(listReadMessages)
@@ -69,14 +69,14 @@ public class BungeeMail extends Plugin {
 		int i = 1;
 		int end = start+9;
 		if(end >= messages.size())end = messages.size();
-		player.sendMessage(ChatUtil.parseString(config.getString(listReadMessages ? "listallHeader" : "listHeader").
+		player.sendMessage(ChatParser.parse(config.getString(listReadMessages ? "listallHeader" : "listHeader").
 				replaceAll("%start%", "" + start).replaceAll("%end%", "" + end).
 				replaceAll("%max%", "" + messages.size()).replaceAll("%list%", listReadMessages ? "listall" : "list").
 				replaceAll("%next%", "" + (end + 1)).replaceAll("%visible%", messages.size() > 10 ? "" + 10 : ("" + messages.size()))));
 		for(Message message: messages){
 			if(i >= start && i < start + 10) {
-				player.sendMessage(ChatUtil.parseString(config.getString(message.isRead() ? "oldMessage" : "newMessage").
-						replaceAll("%sender%", ChatUtil.escapeSpecialChars(message.getSenderName())).
+				player.sendMessage(ChatParser.parse(config.getString(message.isRead() ? "oldMessage" : "newMessage").
+						replaceAll("%sender%", ChatParser.stripBBCode(message.getSenderName())).
 						replaceAll("%time%", formatTime(message.getTime())).
 						replaceAll("%id%", "" + message.hashCode()).
 						replaceAll("%message%", Matcher.quoteReplacement(message.getMessage()))));
@@ -89,7 +89,7 @@ public class BungeeMail extends Plugin {
 	public void showLoginInfo(ProxiedPlayer player){
 		List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), true);
 		if(!messages.isEmpty()) {
-			player.sendMessage(ChatUtil.parseString(config.getString("loginNewMails",
+			player.sendMessage(ChatParser.parse(config.getString("loginNewMails",
 					"&aYou have %num% new mails. Type *[/mail view][/mail view]* to read them.").replace("%num%", "" + messages.size())));
 		}
 	}
@@ -102,14 +102,14 @@ public class BungeeMail extends Plugin {
 		long time = System.currentTimeMillis();
 		UUID targetUUID = storage.getUUIDForName(target);
 		if(targetUUID == null){
-			sender.sendMessage(ChatUtil.parseString(config.getString("unknownTarget")));
+			sender.sendMessage(ChatParser.parse(config.getString("unknownTarget")));
 			return;
 		}
 		Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, text, false, time);
 		storage.saveMessage(message);
-		sender.sendMessage(ChatUtil.parseString(config.getString("messageSent")));
+		sender.sendMessage(ChatParser.parse(config.getString("messageSent")));
 		if(getProxy().getPlayer(targetUUID) != null){
-			getProxy().getPlayer(targetUUID).sendMessage(ChatUtil.parseString(config.getString("receivedNewMessage")));
+			getProxy().getPlayer(targetUUID).sendMessage(ChatParser.parse(config.getString("receivedNewMessage")));
 		}
 	}
 
@@ -121,9 +121,9 @@ public class BungeeMail extends Plugin {
 			Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, text, false, time);
 			storage.saveMessage(message);
 			if (getProxy().getPlayer(targetUUID) != null) {
-				getProxy().getPlayer(targetUUID).sendMessage(ChatUtil.parseString(config.getString("receivedNewMessage")));
+				getProxy().getPlayer(targetUUID).sendMessage(ChatParser.parse(config.getString("receivedNewMessage")));
 			}
 		}
-		sender.sendMessage(ChatUtil.parseString(config.getString("messageSentToAll").replaceAll("%num%", "" + (targets.size() - 1))));
+		sender.sendMessage(ChatParser.parse(config.getString("messageSentToAll").replaceAll("%num%", "" + (targets.size() - 1))));
 	}
 }
