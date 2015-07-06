@@ -16,7 +16,7 @@ public class MailCommand extends Command {
     @Override
     public void execute(CommandSender commandSender, String[] args) {
         if (args.length < 1) {
-            printHelp(commandSender);
+            commandSender.sendMessage(ChatParser.parse(plugin.config.getString("help")));
             return;
         }
         switch (args[0]) {
@@ -52,7 +52,7 @@ public class MailCommand extends Command {
                 plugin.sendMail((ProxiedPlayer) commandSender, target, text);
                 return;
             case "help":
-                printHelp(commandSender);
+                commandSender.sendMessage(ChatParser.parse(plugin.config.getString("help")));
                 return;
             case "del":
                 if (args.length < 2) {
@@ -85,9 +85,4 @@ public class MailCommand extends Command {
         }
     }
 
-    private void printHelp(CommandSender sender) {
-        for (String s : plugin.config.getString("help").split("%newline%")) {
-            sender.sendMessage(ChatParser.parse(s));
-        }
-    }
 }

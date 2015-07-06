@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.regex.Matcher;
 
 /**
  * Created by florian on 15.11.14.
@@ -71,16 +70,16 @@ public class BungeeMail extends Plugin {
         int end = start + 9;
         if (end >= messages.size()) end = messages.size();
         player.sendMessage(ChatParser.parse(config.getString(listReadMessages ? "listallHeader" : "listHeader").
-                replaceAll("%start%", "" + start).replaceAll("%end%", "" + end).
-                replaceAll("%max%", "" + messages.size()).replaceAll("%list%", listReadMessages ? "listall" : "list").
-                replaceAll("%next%", "" + (end + 1)).replaceAll("%visible%", messages.size() > 10 ? "" + 10 : ("" + messages.size()))));
+                replace("%start%", "" + start).replace("%end%", "" + end).
+                replace("%max%", "" + messages.size()).replace("%list%", listReadMessages ? "listall" : "list").
+                replace("%next%", "" + (end + 1)).replace("%visible%", messages.size() > 10 ? "" + 10 : ("" + messages.size()))));
         for (Message message : messages) {
             if (i >= start && i < start + 10) {
                 player.sendMessage(ChatParser.parse(config.getString(message.isRead() ? "oldMessage" : "newMessage").
-                        replaceAll("%sender%", ChatParser.stripBBCode(message.getSenderName())).
-                        replaceAll("%time%", formatTime(message.getTime())).
-                        replaceAll("%id%", "" + message.hashCode()).
-                        replaceAll("%message%", Matcher.quoteReplacement(message.getMessage()))));
+                        replace("%sender%", "[nobbcode]" + message.getSenderName() + "[/nobbcode]").
+                        replace("%time%", formatTime(message.getTime())).
+                        replace("%id%", "" + message.hashCode()).
+                        replace("%message%", message.getMessage())));
                 storage.markRead(message);
             }
             i++;
@@ -91,7 +90,7 @@ public class BungeeMail extends Plugin {
         List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), true);
         if (!messages.isEmpty()) {
             player.sendMessage(ChatParser.parse(config.getString("loginNewMails",
-                    "&aYou have %num% new mails. Type *[/mail view][/mail view]* to read them.").replace("%num%", "" + messages.size())));
+                    "&aYou have %num% new mails. Type [i][command]/mail view[/command][/i] to read them.").replace("%num%", "" + messages.size())));
         }
     }
 
@@ -106,7 +105,7 @@ public class BungeeMail extends Plugin {
             sender.sendMessage(ChatParser.parse(config.getString("unknownTarget")));
             return;
         }
-        Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, text, false, time);
+        Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, ChatParser.stripBBCode(text), false, time);
         storage.saveMessage(message);
         sender.sendMessage(ChatParser.parse(config.getString("messageSent")));
         if (getProxy().getPlayer(targetUUID) != null) {
@@ -117,6 +116,7 @@ public class BungeeMail extends Plugin {
     public void sendMailToAll(ProxiedPlayer sender, String text) {
         long time = System.currentTimeMillis();
         Collection<UUID> targets = storage.getAllKnownUUIDs();
+        text = ChatParser.stripBBCode(text);
         for (UUID targetUUID : targets) {
             if (targetUUID.equals(sender.getUniqueId())) continue;
             Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, text, false, time);
