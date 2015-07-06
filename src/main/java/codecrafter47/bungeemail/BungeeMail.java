@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by florian on 15.11.14.
@@ -55,6 +56,15 @@ public class BungeeMail extends Plugin {
 
         getProxy().getPluginManager().registerCommand(this, new MailCommand("mail", "bungeemail.use", this));
         getProxy().getPluginManager().registerListener(this, new PlayerListener(this));
+
+        if(config.getBoolean("cleanup_enabled", false)){
+            getProxy().getScheduler().schedule(this, new Runnable() {
+                @Override
+                public void run() {
+                    storage.deleteOlder(System.currentTimeMillis() - (60L * 60L * 24L * config.getLong("cleanup_threshold", 7L)), false);
+                }
+            }, 1, 120, TimeUnit.MINUTES);
+        }
     }
 
     public void listMessages(ProxiedPlayer player, int start, boolean listIfNotAvailable, boolean listReadMessages) {

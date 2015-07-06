@@ -90,6 +90,7 @@ public class FlatFileBackend implements IStorageBackend, Listener {
     @Override
     public void delete(Message message) {
         data.data.remove(message);
+        saveData();
     }
 
     @Synchronized
@@ -101,6 +102,19 @@ public class FlatFileBackend implements IStorageBackend, Listener {
                 iterator.remove();
             }
         }
+        saveData();
+    }
+
+    @Override
+    @Synchronized
+    public void deleteOlder(long time, boolean deleteUnread) {
+        for (Iterator<Message> iterator = data.data.iterator(); iterator.hasNext(); ) {
+            Message message = iterator.next();
+            if (message.getTime() < time && (deleteUnread || message.isRead())) {
+                iterator.remove();
+            }
+        }
+        saveData();
     }
 
     @Synchronized

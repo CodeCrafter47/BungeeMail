@@ -109,6 +109,19 @@ public class MySQLBackend implements IStorageBackend, Listener {
         sql.query("delete from bungeemail_mails where id='" + id + "'");
     }
 
+    @Override
+    @SneakyThrows
+    public void deleteOlder(long time, boolean deleteUnread) {
+        if (!sql.isOpen()) {
+            sql.open();
+        }
+        if(deleteUnread) {
+            sql.query("delete from bungeemail_mails where time < '" + time + "'");
+        } else {
+            sql.query("delete from bungeemail_mails where time < '" + time + "' and `read`=0");
+        }
+    }
+
     @SneakyThrows
     @Override
     public UUID getUUIDForName(String name) {

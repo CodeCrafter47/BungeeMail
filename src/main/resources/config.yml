@@ -63,3 +63,8 @@ mysql_port: 3306
 mysql_database: minecraft
 mysql_username: root
 mysql_password: superSecretPassword
+
+# automatically cleanup database
+# deletes all read mails older than cleanup_threshold days
+cleanup_enabled: true
+cleanup_threshold: 7

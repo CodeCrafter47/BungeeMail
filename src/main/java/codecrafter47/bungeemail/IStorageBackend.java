@@ -24,4 +24,6 @@ public interface IStorageBackend {
     public Collection<String> getKnownUsernames();
 
     void delete(int id);
+
+    void deleteOlder(long time, boolean deleteUnread);
 }
