@@ -21,6 +21,7 @@ public class MailCommand extends Command {
 		switch (args[0]){
 			case "view":
 			case "list":
+			case "read":
 				int start = 1;
 				if(args.length >= 2)start = Integer.valueOf(args[1]);
 				plugin.listMessages((ProxiedPlayer)commandSender, start, true, false);
