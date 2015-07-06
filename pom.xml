@@ -87,7 +87,7 @@
                                     <excludes>
                                         <exclude>plugin.yml</exclude>
                                         <exclude>config.yml</exclude>
-                                        <exclude>propeties.yml</exclude>
+                                        <exclude>properties.yml</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
