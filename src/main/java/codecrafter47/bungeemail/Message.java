@@ -13,22 +13,24 @@ import java.util.UUID;
 @NoArgsConstructor
 @Data
 public class Message {
-	String senderName;
-	UUID senderUUID;
-	UUID recipient;
-	String message;
-	boolean read;
-	long time;
+    String senderName;
+    UUID senderUUID;
+    UUID recipient;
+    String message;
+    boolean read;
+    long time;
 
-	@Override public int hashCode() {
-		return (int) (senderUUID.hashCode() + recipient.hashCode() + time);
-	}
+    @Override
+    public int hashCode() {
+        return (int) (senderUUID.hashCode() + recipient.hashCode() + time);
+    }
 
-	@Override public boolean equals(Object obj) {
-		if(obj instanceof Message){
-			Message that = (Message) obj;
-			return that.senderUUID.equals(senderUUID) && that.recipient.equals(recipient) && that.time == time;
-		}
-		return super.equals(obj);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Message) {
+            Message that = (Message) obj;
+            return that.senderUUID.equals(senderUUID) && that.recipient.equals(recipient) && that.time == time;
+        }
+        return super.equals(obj);
+    }
 }

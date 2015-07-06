@@ -312,7 +312,7 @@ public class ChatParser {
         return components.toArray(new BaseComponent[components.size()]);
     }
 
-    public static String stripBBCode(String string){
+    public static String stripBBCode(String string) {
         return strip_bbcode_pattern.matcher(string).replaceAll("");
     }
 }

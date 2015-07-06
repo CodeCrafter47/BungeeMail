@@ -23,107 +23,108 @@ import java.util.regex.Matcher;
  */
 public class BungeeMail extends Plugin {
 
-	Configuration config;
+    Configuration config;
 
-	static BungeeMail instance;
+    static BungeeMail instance;
 
-	@Getter
-	private IStorageBackend storage;
+    @Getter
+    private IStorageBackend storage;
 
-	@SneakyThrows
-	@Override public void onEnable() {
-		// enable it
-		if (!getDataFolder().exists()) {
-			getDataFolder().mkdir();
-		}
+    @SneakyThrows
+    @Override
+    public void onEnable() {
+        // enable it
+        if (!getDataFolder().exists()) {
+            getDataFolder().mkdir();
+        }
 
-		File file = new File(getDataFolder(), "config.yml");
+        File file = new File(getDataFolder(), "config.yml");
 
-		if (!file.exists()) {
-			Files.copy(getResourceAsStream("config.yml"), file.toPath());
-		}
+        if (!file.exists()) {
+            Files.copy(getResourceAsStream("config.yml"), file.toPath());
+        }
 
-		config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
+        config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
 
-		if(!config.getBoolean("useMySQL")){
-			storage = new FlatFileBackend(this);
-		} else {
-			storage = new MySQLBackend(this);
-		}
+        if (!config.getBoolean("useMySQL")) {
+            storage = new FlatFileBackend(this);
+        } else {
+            storage = new MySQLBackend(this);
+        }
 
-		instance = this;
+        instance = this;
 
-		getProxy().getPluginManager().registerCommand(this, new MailCommand("mail", "bungeemail.use", this));
-		getProxy().getPluginManager().registerListener(this, new PlayerListener(this));
-	}
+        getProxy().getPluginManager().registerCommand(this, new MailCommand("mail", "bungeemail.use", this));
+        getProxy().getPluginManager().registerListener(this, new PlayerListener(this));
+    }
 
-	public void listMessages(ProxiedPlayer player, int start, boolean listIfNotAvailable, boolean listReadMessages) {
-		List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), !listReadMessages);
-		if(messages.isEmpty() && listIfNotAvailable){
-			player.sendMessage(ChatParser.parse(config.getString("noNewMessages")));
-		}
-		if(messages.isEmpty())return;
-		if(listReadMessages)
-			messages = Lists.reverse(messages);
-		if(start >= messages.size())start = 1;
-		int i = 1;
-		int end = start+9;
-		if(end >= messages.size())end = messages.size();
-		player.sendMessage(ChatParser.parse(config.getString(listReadMessages ? "listallHeader" : "listHeader").
-				replaceAll("%start%", "" + start).replaceAll("%end%", "" + end).
-				replaceAll("%max%", "" + messages.size()).replaceAll("%list%", listReadMessages ? "listall" : "list").
-				replaceAll("%next%", "" + (end + 1)).replaceAll("%visible%", messages.size() > 10 ? "" + 10 : ("" + messages.size()))));
-		for(Message message: messages){
-			if(i >= start && i < start + 10) {
-				player.sendMessage(ChatParser.parse(config.getString(message.isRead() ? "oldMessage" : "newMessage").
-						replaceAll("%sender%", ChatParser.stripBBCode(message.getSenderName())).
-						replaceAll("%time%", formatTime(message.getTime())).
-						replaceAll("%id%", "" + message.hashCode()).
-						replaceAll("%message%", Matcher.quoteReplacement(message.getMessage()))));
-				storage.markRead(message);
-			}
-			i++;
-		}
-	}
+    public void listMessages(ProxiedPlayer player, int start, boolean listIfNotAvailable, boolean listReadMessages) {
+        List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), !listReadMessages);
+        if (messages.isEmpty() && listIfNotAvailable) {
+            player.sendMessage(ChatParser.parse(config.getString("noNewMessages")));
+        }
+        if (messages.isEmpty()) return;
+        if (listReadMessages)
+            messages = Lists.reverse(messages);
+        if (start >= messages.size()) start = 1;
+        int i = 1;
+        int end = start + 9;
+        if (end >= messages.size()) end = messages.size();
+        player.sendMessage(ChatParser.parse(config.getString(listReadMessages ? "listallHeader" : "listHeader").
+                replaceAll("%start%", "" + start).replaceAll("%end%", "" + end).
+                replaceAll("%max%", "" + messages.size()).replaceAll("%list%", listReadMessages ? "listall" : "list").
+                replaceAll("%next%", "" + (end + 1)).replaceAll("%visible%", messages.size() > 10 ? "" + 10 : ("" + messages.size()))));
+        for (Message message : messages) {
+            if (i >= start && i < start + 10) {
+                player.sendMessage(ChatParser.parse(config.getString(message.isRead() ? "oldMessage" : "newMessage").
+                        replaceAll("%sender%", ChatParser.stripBBCode(message.getSenderName())).
+                        replaceAll("%time%", formatTime(message.getTime())).
+                        replaceAll("%id%", "" + message.hashCode()).
+                        replaceAll("%message%", Matcher.quoteReplacement(message.getMessage()))));
+                storage.markRead(message);
+            }
+            i++;
+        }
+    }
 
-	public void showLoginInfo(ProxiedPlayer player){
-		List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), true);
-		if(!messages.isEmpty()) {
-			player.sendMessage(ChatParser.parse(config.getString("loginNewMails",
-					"&aYou have %num% new mails. Type *[/mail view][/mail view]* to read them.").replace("%num%", "" + messages.size())));
-		}
-	}
+    public void showLoginInfo(ProxiedPlayer player) {
+        List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), true);
+        if (!messages.isEmpty()) {
+            player.sendMessage(ChatParser.parse(config.getString("loginNewMails",
+                    "&aYou have %num% new mails. Type *[/mail view][/mail view]* to read them.").replace("%num%", "" + messages.size())));
+        }
+    }
 
-	private String formatTime(long time) {
-		return new SimpleDateFormat("hh:mm:ss").format(new Date(time));
-	}
+    private String formatTime(long time) {
+        return new SimpleDateFormat("hh:mm:ss").format(new Date(time));
+    }
 
-	public void sendMail(ProxiedPlayer sender, String target, String text) {
-		long time = System.currentTimeMillis();
-		UUID targetUUID = storage.getUUIDForName(target);
-		if(targetUUID == null){
-			sender.sendMessage(ChatParser.parse(config.getString("unknownTarget")));
-			return;
-		}
-		Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, text, false, time);
-		storage.saveMessage(message);
-		sender.sendMessage(ChatParser.parse(config.getString("messageSent")));
-		if(getProxy().getPlayer(targetUUID) != null){
-			getProxy().getPlayer(targetUUID).sendMessage(ChatParser.parse(config.getString("receivedNewMessage")));
-		}
-	}
+    public void sendMail(ProxiedPlayer sender, String target, String text) {
+        long time = System.currentTimeMillis();
+        UUID targetUUID = storage.getUUIDForName(target);
+        if (targetUUID == null) {
+            sender.sendMessage(ChatParser.parse(config.getString("unknownTarget")));
+            return;
+        }
+        Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, text, false, time);
+        storage.saveMessage(message);
+        sender.sendMessage(ChatParser.parse(config.getString("messageSent")));
+        if (getProxy().getPlayer(targetUUID) != null) {
+            getProxy().getPlayer(targetUUID).sendMessage(ChatParser.parse(config.getString("receivedNewMessage")));
+        }
+    }
 
-	public void sendMailToAll(ProxiedPlayer sender, String text) {
-		long time = System.currentTimeMillis();
-		Collection<UUID> targets = storage.getAllKnownUUIDs();
-		for(UUID targetUUID: targets) {
-			if(targetUUID.equals(sender.getUniqueId()))continue;
-			Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, text, false, time);
-			storage.saveMessage(message);
-			if (getProxy().getPlayer(targetUUID) != null) {
-				getProxy().getPlayer(targetUUID).sendMessage(ChatParser.parse(config.getString("receivedNewMessage")));
-			}
-		}
-		sender.sendMessage(ChatParser.parse(config.getString("messageSentToAll").replaceAll("%num%", "" + (targets.size() - 1))));
-	}
+    public void sendMailToAll(ProxiedPlayer sender, String text) {
+        long time = System.currentTimeMillis();
+        Collection<UUID> targets = storage.getAllKnownUUIDs();
+        for (UUID targetUUID : targets) {
+            if (targetUUID.equals(sender.getUniqueId())) continue;
+            Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, text, false, time);
+            storage.saveMessage(message);
+            if (getProxy().getPlayer(targetUUID) != null) {
+                getProxy().getPlayer(targetUUID).sendMessage(ChatParser.parse(config.getString("receivedNewMessage")));
+            }
+        }
+        sender.sendMessage(ChatParser.parse(config.getString("messageSentToAll").replaceAll("%num%", "" + (targets.size() - 1))));
+    }
 }
