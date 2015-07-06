@@ -57,6 +57,7 @@
                 <filtering>true</filtering>
                 <includes>
                     <include>bungee.yml</include>
+                    <include>config.yml</include>
                 </includes>
             </resource>
         </resources>
