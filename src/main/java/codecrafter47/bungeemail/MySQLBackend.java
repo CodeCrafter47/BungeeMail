@@ -27,8 +27,12 @@ public class MySQLBackend implements IStorageBackend, Listener {
 				plugin.config.getString("mysql_username"), plugin.config.getString("mysql_password"));
 		try {
 			sql.open();
-			sql.query("CREATE TABLE IF NOT EXISTS bungeemail_mails (id int NOT NULL AUTO_INCREMENT,senderName varchar(20), senderUUID varchar(40), recipient varchar(40), `message` varchar(255), `read` boolean, `time` bigint, PRIMARY KEY (id))");
-			sql.query("CREATE TABLE IF NOT EXISTS bungeemail_uuids (id int NOT NULL AUTO_INCREMENT,username varchar(20), uuid varchar(40),PRIMARY KEY (id))");
+			if(sql.isOpen()){
+				sql.query("CREATE TABLE IF NOT EXISTS bungeemail_mails (id int NOT NULL AUTO_INCREMENT,senderName varchar(20), senderUUID varchar(40), recipient varchar(40), `message` varchar(255), `read` boolean, `time` bigint, PRIMARY KEY (id))");
+				sql.query("CREATE TABLE IF NOT EXISTS bungeemail_uuids (id int NOT NULL AUTO_INCREMENT,username varchar(20), uuid varchar(40),PRIMARY KEY (id))");
+			} else {
+				throw new RuntimeException("Failed to connect to MySql database");
+			}
 		} catch (SQLException e) {
 			plugin.getLogger().warning("MySQL setup failed");
 			throw new RuntimeException(e);
