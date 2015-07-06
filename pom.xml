@@ -13,7 +13,13 @@
             <id>bungeecord-repo</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
+        <repository>
+            <id>dakani</id>
+            <name>Dakani Nexus Repo</name>
+            <url>http://repo.dakanilabs.com/content/repositories/public</url>
+        </repository>
     </repositories>
+
     <build>
         <plugins>
             <plugin>
@@ -25,8 +31,40 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>lib.PatPeter.SQLibrary:SQLibrary</artifact>
+                                    <excludes>
+                                        <exclude>plugin.yml</exclude>
+                                        <exclude>config.yml</exclude>
+                                        <exclude>propeties.yml</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>lib.PatPeter.SQLibrary</pattern>
+                                    <shadedPattern>codecrafter47.bungeemail.lib.PatPeter.SQLibrary</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
     <dependencies>
         <dependency>
             <groupId>net.md-5</groupId>
@@ -45,6 +83,11 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.4</version>
+        </dependency>
+        <dependency>
+            <groupId>lib.PatPeter.SQLibrary</groupId>
+            <artifactId>SQLibrary</artifactId>
+            <version>7.1</version>
         </dependency>
     </dependencies>
 

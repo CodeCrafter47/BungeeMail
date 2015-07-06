@@ -1,7 +1,7 @@
 package codecrafter47.bungeemail;
 
-import codecrafter47.bungeemail.SQLibrary.Database;
-import codecrafter47.bungeemail.SQLibrary.MySQL;
+import lib.PatPeter.SQLibrary.Database;
+import lib.PatPeter.SQLibrary.MySQL;
 import lombok.SneakyThrows;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -22,7 +22,7 @@ public class MySQLBackend implements IStorageBackend, Listener {
 
 	public MySQLBackend(BungeeMail plugin) {
 		this.plugin = plugin;
-		sql = new MySQL(plugin.getLogger(), "", plugin.config.getString("mysql_hostname"),
+		sql = new MySQL(plugin.getLogger(), "[BungeeMail/MySQL]", plugin.config.getString("mysql_hostname"),
 				plugin.config.getInt("mysql_port"), plugin.config.getString("mysql_database"),
 				plugin.config.getString("mysql_username"), plugin.config.getString("mysql_password"));
 		try {
