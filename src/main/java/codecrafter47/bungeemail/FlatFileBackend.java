@@ -51,13 +51,18 @@ public class FlatFileBackend implements IStorageBackend, Listener {
     @SneakyThrows
     @Synchronized
     private void saveData() {
+        File tmpFile = File.createTempFile("data", "incomplete", file.getParentFile());
+        if(tmpFile.exists()){
+            tmpFile.delete();
+        }
+        tmpFile.createNewFile();
+        FileWriter fileWriter = new FileWriter(tmpFile);
+        gson.toJson(data, fileWriter);
+        fileWriter.close();
         if (file.exists()) {
             file.delete();
         }
-        file.createNewFile();
-        FileWriter fileWriter = new FileWriter(file);
-        gson.toJson(data, fileWriter);
-        fileWriter.close();
+        tmpFile.renameTo(file);
     }
 
     @Synchronized
