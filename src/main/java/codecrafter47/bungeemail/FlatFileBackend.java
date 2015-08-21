@@ -28,6 +28,7 @@ public class FlatFileBackend implements IStorageBackend, Listener {
     public FlatFileBackend(BungeeMail plugin) {
         this.plugin = plugin;
         saveFile = new File(plugin.getDataFolder(), "data.json");
+        tmpSaveFile = new File(plugin.getDataFolder(), "data.json.tmp");
         readData();
         plugin.getProxy().getPluginManager().registerListener(plugin, this);
     }
