@@ -21,12 +21,13 @@ public class FlatFileBackend implements IStorageBackend, Listener {
 
     private BungeeMail plugin;
     private Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private File file;
+    private File saveFile;
+    private File tmpSaveFile;
     private Data data;
 
     public FlatFileBackend(BungeeMail plugin) {
         this.plugin = plugin;
-        file = new File(plugin.getDataFolder(), "data.json");
+        saveFile = new File(plugin.getDataFolder(), "data.json");
         readData();
         plugin.getProxy().getPluginManager().registerListener(plugin, this);
     }
@@ -34,9 +35,9 @@ public class FlatFileBackend implements IStorageBackend, Listener {
     @SneakyThrows
     @Synchronized
     private void readData() {
-        if (file.exists()) {
+        if (saveFile.exists()) {
             try {
-                FileReader fileReader = new FileReader(file);
+                FileReader fileReader = new FileReader(saveFile);
                 data = gson.fromJson(fileReader, Data.class);
                 fileReader.close();
             } catch (FileNotFoundException e) {
@@ -51,18 +52,17 @@ public class FlatFileBackend implements IStorageBackend, Listener {
     @SneakyThrows
     @Synchronized
     private void saveData() {
-        File tmpFile = File.createTempFile("data", "incomplete", file.getParentFile());
-        if(tmpFile.exists()){
-            tmpFile.delete();
+        if(tmpSaveFile.exists()){
+            tmpSaveFile.delete();
         }
-        tmpFile.createNewFile();
-        FileWriter fileWriter = new FileWriter(tmpFile);
+        tmpSaveFile.createNewFile();
+        FileWriter fileWriter = new FileWriter(tmpSaveFile);
         gson.toJson(data, fileWriter);
         fileWriter.close();
-        if (file.exists()) {
-            file.delete();
+        if (saveFile.exists()) {
+            saveFile.delete();
         }
-        tmpFile.renameTo(file);
+        tmpSaveFile.renameTo(saveFile);
     }
 
     @Synchronized
