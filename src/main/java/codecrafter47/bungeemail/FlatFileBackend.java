@@ -2,18 +2,18 @@ package codecrafter47.bungeemail;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.md_5.bungee.api.event.PostLoginEvent;
-import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.event.EventHandler;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class FlatFileBackend implements IStorageBackend, Listener {
+public class FlatFileBackend implements IStorageBackend {
     private Logger logger;
     private Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private File saveFile;
@@ -27,7 +27,6 @@ public class FlatFileBackend implements IStorageBackend, Listener {
         tmpSaveFile = new File(plugin.getDataFolder(), "data.json.tmp");
         lock = new ReentrantReadWriteLock();
         readData();
-        plugin.getProxy().getPluginManager().registerListener(plugin, this);
     }
 
     private void readData() {
@@ -185,11 +184,11 @@ public class FlatFileBackend implements IStorageBackend, Listener {
         }
     }
 
-    @EventHandler
-    public void onJoin(PostLoginEvent event) {
+    @Override
+    public void updateUserEntry(UUID uuid, String username) {
         lock.writeLock().lock();
         try {
-            data.uuidMap.put(event.getPlayer().getName(), event.getPlayer().getUniqueId());
+            data.uuidMap.put(username, uuid);
             saveData();
         } finally {
             lock.writeLock().unlock();

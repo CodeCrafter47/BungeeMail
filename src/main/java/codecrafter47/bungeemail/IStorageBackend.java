@@ -23,6 +23,8 @@ public interface IStorageBackend {
     // used for tab-complete
     Collection<String> getKnownUsernames();
 
+    void updateUserEntry(UUID uuid, String username);
+
     void delete(int id);
 
     void deleteOlder(long time, boolean deleteUnread);

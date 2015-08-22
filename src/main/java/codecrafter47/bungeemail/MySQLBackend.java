@@ -3,19 +3,13 @@ package codecrafter47.bungeemail;
 import lib.PatPeter.SQLibrary.Database;
 import lib.PatPeter.SQLibrary.MySQL;
 import lombok.SneakyThrows;
-import net.md_5.bungee.api.event.PostLoginEvent;
-import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.event.EventHandler;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by florian on 15.11.14.
- */
-public class MySQLBackend implements IStorageBackend, Listener {
+public class MySQLBackend implements IStorageBackend {
 
     BungeeMail plugin;
     Database sql;
@@ -37,7 +31,6 @@ public class MySQLBackend implements IStorageBackend, Listener {
             plugin.getLogger().warning("MySQL setup failed");
             throw new RuntimeException(e);
         }
-        plugin.getProxy().getPluginManager().registerListener(plugin, this);
     }
 
     @SneakyThrows
@@ -129,7 +122,7 @@ public class MySQLBackend implements IStorageBackend, Listener {
             sql.open();
         }
         ResultSet rs = sql.query("select * from bungeemail_uuids where username='" + name + "'");
-        while (rs.next()) {
+        if (rs.next()) {
             return UUID.fromString(rs.getString("uuid"));
         }
         return null;
@@ -163,8 +156,8 @@ public class MySQLBackend implements IStorageBackend, Listener {
         return strings;
     }
 
-    @EventHandler
-    public void onPlayerJoin(final PostLoginEvent event) {
+    @Override
+    public void updateUserEntry(final UUID uuid, final String username) {
         plugin.getProxy().getScheduler().schedule(plugin, new Runnable() {
             @SneakyThrows
             @Override
@@ -172,17 +165,17 @@ public class MySQLBackend implements IStorageBackend, Listener {
                 if (!sql.isOpen()) {
                     sql.open();
                 }
-                ResultSet rs = sql.query("select * from bungeemail_uuids where uuid='" + event.getPlayer().getUniqueId() + "'");
+                ResultSet rs = sql.query("select * from bungeemail_uuids where uuid='" + uuid + "'");
                 boolean upToDate = false;
                 boolean there = false;
                 while (rs.next()) {
                     there = true;
-                    upToDate = rs.getString("username").equals(event.getPlayer().getName());
+                    upToDate = rs.getString("username").equals(username);
                 }
                 if (!there) {
-                    sql.query("insert into bungeemail_uuids values(NULL,'" + event.getPlayer().getName() + "', '" + event.getPlayer().getUniqueId() + "')");
+                    sql.query("insert into bungeemail_uuids values(NULL,'" + username + "', '" + uuid + "')");
                 } else if (!upToDate) {
-                    sql.query("update bungeemail_uuids set username='" + event.getPlayer().getName() + "' where uuid='" + event.getPlayer().getUniqueId() + "'");
+                    sql.query("update bungeemail_uuids set username='" + username + "' where uuid='" + uuid + "'");
                 }
             }
         }, 1, TimeUnit.MILLISECONDS);

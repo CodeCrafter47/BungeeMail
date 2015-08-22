@@ -1,10 +1,12 @@
 package codecrafter47.bungeemail;
 
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.TabCompleteEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import net.md_5.bungee.event.EventPriority;
 
 import java.util.concurrent.TimeUnit;
 
@@ -17,6 +19,13 @@ public class PlayerListener implements Listener {
 
     public PlayerListener(BungeeMail plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerJoin(LoginEvent event) {
+        if (!event.isCancelled()) {
+            plugin.getStorage().updateUserEntry(event.getConnection().getUniqueId(), event.getConnection().getName());
+        }
     }
 
     @EventHandler
