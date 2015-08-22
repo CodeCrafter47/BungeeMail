@@ -19,58 +19,86 @@ public class FlatFileBackend implements IStorageBackend {
     private File saveFile;
     private File tmpSaveFile;
     private Data data;
-    private ReadWriteLock lock;
+    private ReadWriteLock lock = new ReentrantReadWriteLock();
+    private ReadWriteLock fileLock = new ReentrantReadWriteLock();
+    private boolean saveRequested = false;
 
     public FlatFileBackend(BungeeMail plugin) {
         logger = plugin.getLogger();
-        saveFile = new File(plugin.getDataFolder(), "data.json");
         tmpSaveFile = new File(plugin.getDataFolder(), "data.json.tmp");
-        lock = new ReentrantReadWriteLock();
-        readData();
+        saveFile = new File(plugin.getDataFolder(), "data.json");
     }
 
-    private void readData() {
-        // This method is only called during construction of the class,
-        // so no synchronization is needed.
-        if (saveFile.exists()) {
-            try {
-                FileReader fileReader = new FileReader(saveFile);
-                data = gson.fromJson(fileReader, Data.class);
-                fileReader.close();
-            } catch (Exception ex) {
-                logger.log(Level.WARNING, "Failed to read data.gson", ex);
+    /**
+     * Attempts to read the mail data from a file
+     *
+     * @return true on success
+     */
+    public boolean readData() {
+        fileLock.readLock().lock();
+        try {
+            if (saveFile.exists()) {
+                try {
+                    FileReader fileReader = new FileReader(saveFile);
+                    data = gson.fromJson(fileReader, Data.class);
+                    fileReader.close();
+                    return true;
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Failed to read data.gson", ex);
+                    data = new Data();
+                }
+            } else if (tmpSaveFile.exists()) {
+                if (tmpSaveFile.renameTo(saveFile)) {
+                    return readData();
+                }
+            } else {
                 data = new Data();
+                return true;
             }
-        } else if(tmpSaveFile.exists()) {
-            if(tmpSaveFile.renameTo(saveFile)){
-                readData();
-            }
-        } else {
-            data = new Data();
+            return false;
+        } finally {
+            fileLock.readLock().unlock();
         }
     }
 
     /**
      * Attempts to save the mail data to a file
+     *
      * @return true on success, false otherwise
      */
-    private boolean saveData() {
-        try {
-            if (tmpSaveFile.exists()) {
-                if (!tmpSaveFile.delete()) return false;
+    public boolean saveData() {
+        if (saveRequested) {
+            saveRequested = false;
+            lock.readLock().lock();
+            fileLock.writeLock().lock();
+            try {
+                if (tmpSaveFile.exists()) {
+                    if (!tmpSaveFile.delete()) return false;
+                }
+                if (!tmpSaveFile.createNewFile()) return false;
+                FileWriter fileWriter = new FileWriter(tmpSaveFile);
+                gson.toJson(data, fileWriter);
+                fileWriter.close();
+                if (saveFile.exists()) {
+                    if (!saveFile.delete()) return false;
+                }
+                return tmpSaveFile.renameTo(saveFile);
+            } catch (IOException ex) {
+                logger.log(Level.WARNING, "Failed to save file to disk", ex);
+                return false;
+            } finally {
+                fileLock.writeLock().unlock();
+                lock.readLock().unlock();
             }
-            if (!tmpSaveFile.createNewFile()) return false;
-            FileWriter fileWriter = new FileWriter(tmpSaveFile);
-            gson.toJson(data, fileWriter);
-            fileWriter.close();
-            if (saveFile.exists()) {
-                if (!saveFile.delete()) return false;
-            }
-            return tmpSaveFile.renameTo(saveFile);
-        } catch (IOException ex){
-            logger.log(Level.WARNING, "Failed to save file to disk", ex);
-            return false;
         }
+        return true;
+    }
+
+    /**
+     * called by all methods of this class that modify the data set to request a save.
+     */
+    private void requestSave(){
+        saveRequested = true;
     }
 
     @Override
@@ -94,7 +122,7 @@ public class FlatFileBackend implements IStorageBackend {
             if (!data.data.contains(message)) {
                 data.data.add(message);
             }
-            saveData();
+            requestSave();
         } finally {
             lock.writeLock().unlock();
         }
@@ -105,7 +133,7 @@ public class FlatFileBackend implements IStorageBackend {
         lock.writeLock().lock();
         try {
             message.setRead(true);
-            saveData();
+            requestSave();
         } finally {
             lock.writeLock().unlock();
         }
@@ -116,7 +144,7 @@ public class FlatFileBackend implements IStorageBackend {
         lock.writeLock().lock();
         try {
             data.data.remove(message);
-            saveData();
+            requestSave();
         } finally {
             lock.writeLock().unlock();
         }
@@ -132,7 +160,7 @@ public class FlatFileBackend implements IStorageBackend {
                     iterator.remove();
                 }
             }
-            saveData();
+            requestSave();
         } finally {
             lock.writeLock().unlock();
         }
@@ -148,7 +176,7 @@ public class FlatFileBackend implements IStorageBackend {
                     iterator.remove();
                 }
             }
-            saveData();
+            requestSave();
         } finally {
             lock.writeLock().unlock();
         }
@@ -189,7 +217,7 @@ public class FlatFileBackend implements IStorageBackend {
         lock.writeLock().lock();
         try {
             data.uuidMap.put(username, uuid);
-            saveData();
+            requestSave();
         } finally {
             lock.writeLock().unlock();
         }

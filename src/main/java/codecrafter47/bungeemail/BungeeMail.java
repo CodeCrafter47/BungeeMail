@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.api.scheduler.ScheduledTask;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -19,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 /**
  * Created by florian on 15.11.14.
@@ -52,7 +54,19 @@ public class BungeeMail extends Plugin {
         config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
 
         if (!config.getBoolean("useMySQL")) {
-            storage = new FlatFileBackend(this);
+            final FlatFileBackend fileBackend = new FlatFileBackend(this);
+            if(!fileBackend.readData()){
+                getLogger().log(Level.SEVERE, "Failed to load mail data from file, plugin won't be enabled");
+                return;
+            }
+            // schedule saving
+            getProxy().getScheduler().schedule(this, new Runnable() {
+                @Override
+                public void run() {
+                    fileBackend.saveData();
+                }
+            }, 2, 2, TimeUnit.MINUTES);
+            storage = fileBackend;
         } else {
             storage = new MySQLBackend(this);
         }
@@ -69,6 +83,13 @@ public class BungeeMail extends Plugin {
                     storage.deleteOlder(System.currentTimeMillis() - (60L * 60L * 24L * config.getLong("cleanup_threshold", 7L)), false);
                 }
             }, 1, 120, TimeUnit.MINUTES);
+        }
+    }
+
+    @Override
+    public void onDisable() {
+        if(storage != null && storage instanceof FlatFileBackend){
+            ((FlatFileBackend)storage).saveData();
         }
     }
 
