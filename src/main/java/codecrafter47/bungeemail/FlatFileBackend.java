@@ -2,7 +2,6 @@ package codecrafter47.bungeemail;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import lombok.SneakyThrows;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -31,7 +30,6 @@ public class FlatFileBackend implements IStorageBackend, Listener {
         plugin.getProxy().getPluginManager().registerListener(plugin, this);
     }
 
-    @SneakyThrows
     private void readData() {
         // This method is only called during construction of the class,
         // so no synchronization is needed.
@@ -40,9 +38,13 @@ public class FlatFileBackend implements IStorageBackend, Listener {
                 FileReader fileReader = new FileReader(saveFile);
                 data = gson.fromJson(fileReader, Data.class);
                 fileReader.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Failed to read data.gson", ex);
                 data = new Data();
+            }
+        } else if(tmpSaveFile.exists()) {
+            if(tmpSaveFile.renameTo(saveFile)){
+                readData();
             }
         } else {
             data = new Data();
