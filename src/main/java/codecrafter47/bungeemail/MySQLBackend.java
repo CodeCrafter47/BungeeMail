@@ -4,6 +4,7 @@ import lib.PatPeter.SQLibrary.Database;
 import lib.PatPeter.SQLibrary.MySQL;
 import lombok.SneakyThrows;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -39,11 +40,15 @@ public class MySQLBackend implements IStorageBackend {
         if (!sql.isOpen()) {
             sql.open();
         }
+        PreparedStatement ps;
         ResultSet rs;
-        if (onlyNew)
-            rs = sql.query("select * from bungeemail_mails where recipient='" + uuid + "' and `read`='0'");
-        else
-            rs = sql.query("select * from bungeemail_mails where recipient='" + uuid + "'");
+        if (onlyNew) {
+            ps = sql.prepare("select * from bungeemail_mails where recipient=? and `read`='0'");
+        } else {
+            ps = sql.prepare("select * from bungeemail_mails where recipient=?");
+        }
+        ps.setString(1, uuid.toString());
+        rs = sql.query(ps);
         ArrayList<Message> messages = new ArrayList<>();
         while (rs.next()) {
             String senderName = rs.getString("senderName");
@@ -65,13 +70,24 @@ public class MySQLBackend implements IStorageBackend {
             sql.open();
         }
         if (message instanceof SQLMessage) {
-            sql.query("update bungeemail_mails set senderName='" + message.getSenderName() + "', senderUUID='" + message.getSenderUUID() + "'" +
-                    ", recipient='" + message.getRecipient() + "', message='" + escapeBadChars(message.getMessage()) + "'" +
-                    ", `read`='" + (message.isRead() ? 1 : 0) + "', time='" + message.getTime() + "' where id='" + message.hashCode() + "'");
+            PreparedStatement ps = sql.prepare("update bungeemail_mails set senderName=?, senderUUID=?, recipient=?, message=?, `read`=?, time=? where id=?");
+            ps.setString(1, message.getSenderName());
+            ps.setString(2, message.getSenderUUID().toString());
+            ps.setString(3, message.getRecipient().toString());
+            ps.setString(4, message.getMessage());
+            ps.setBoolean(5, message.isRead());
+            ps.setLong(6, message.getTime());
+            ps.setLong(7, message.hashCode());
+            sql.query(ps);
         } else {
-            sql.query("insert into bungeemail_mails values(NULL,'" + message.getSenderName() + "', '"
-                    + message.getSenderUUID() + "', '" + message.getRecipient() + "', '"
-                    + escapeBadChars(message.getMessage()) + "', '" + (message.isRead() ? 1 : 0) + "', '" + message.getTime() + "')");
+            PreparedStatement ps = sql.prepare("insert into bungeemail_mails values(NULL, ?, ?, ?, ?, ?, ?)");
+            ps.setString(1, message.getSenderName());
+            ps.setString(2, message.getSenderUUID().toString());
+            ps.setString(3, message.getRecipient().toString());
+            ps.setString(4, message.getMessage());
+            ps.setBoolean(5, message.isRead());
+            ps.setLong(6, message.getTime());
+            sql.query(ps);
         }
     }
 
@@ -81,7 +97,10 @@ public class MySQLBackend implements IStorageBackend {
         if (!sql.isOpen()) {
             sql.open();
         }
-        sql.query("update bungeemail_mails set `read`=1 where id='" + message.hashCode() + "'");
+        PreparedStatement ps = sql.prepare("update bungeemail_mails set `read`=1 where id=?");
+        ps.setLong(1, message.hashCode());
+        sql.query(ps);
+        message.setRead(true);
     }
 
     @SneakyThrows
@@ -90,7 +109,9 @@ public class MySQLBackend implements IStorageBackend {
         if (!sql.isOpen()) {
             sql.open();
         }
-        sql.query("delete from bungeemail_mails where id='" + message.hashCode() + "'");
+        PreparedStatement ps = sql.prepare("delete from bungeemail_mails where id=?");
+        ps.setLong(1, message.hashCode());
+        sql.query(ps);
     }
 
     @SneakyThrows
@@ -99,7 +120,9 @@ public class MySQLBackend implements IStorageBackend {
         if (!sql.isOpen()) {
             sql.open();
         }
-        sql.query("delete from bungeemail_mails where id='" + id + "'");
+        PreparedStatement ps = sql.prepare("delete from bungeemail_mails where id=?");
+        ps.setLong(1, id);
+        sql.query(ps);
     }
 
     @Override
@@ -108,11 +131,14 @@ public class MySQLBackend implements IStorageBackend {
         if (!sql.isOpen()) {
             sql.open();
         }
+        PreparedStatement ps;
         if(deleteUnread) {
-            sql.query("delete from bungeemail_mails where time < '" + time + "'");
+            ps = sql.prepare("delete from bungeemail_mails where time < ?");
         } else {
-            sql.query("delete from bungeemail_mails where time < '" + time + "' and `read`=0");
+            ps = sql.prepare("delete from bungeemail_mails where time < ? and `read`=0");
         }
+        ps.setLong(1, time);
+        sql.query(ps);
     }
 
     @SneakyThrows
@@ -121,7 +147,9 @@ public class MySQLBackend implements IStorageBackend {
         if (!sql.isOpen()) {
             sql.open();
         }
-        ResultSet rs = sql.query("select * from bungeemail_uuids where username='" + name + "'");
+        PreparedStatement ps = sql.prepare("select * from bungeemail_uuids where username=?");
+        ps.setString(1, name);
+        ResultSet rs = sql.query(ps);
         if (rs.next()) {
             return UUID.fromString(rs.getString("uuid"));
         }
@@ -165,7 +193,9 @@ public class MySQLBackend implements IStorageBackend {
                 if (!sql.isOpen()) {
                     sql.open();
                 }
-                ResultSet rs = sql.query("select * from bungeemail_uuids where uuid='" + uuid + "'");
+                PreparedStatement ps = sql.prepare("select * from bungeemail_uuids where uuid=?");
+                ps.setString(1, uuid.toString());
+                ResultSet rs = sql.query(ps);
                 boolean upToDate = false;
                 boolean there = false;
                 while (rs.next()) {
@@ -173,16 +203,15 @@ public class MySQLBackend implements IStorageBackend {
                     upToDate = rs.getString("username").equals(username);
                 }
                 if (!there) {
-                    sql.query("insert into bungeemail_uuids values(NULL,'" + username + "', '" + uuid + "')");
+                    ps = sql.prepare("insert into bungeemail_uuids values(NULL, ?, ?)");
                 } else if (!upToDate) {
-                    sql.query("update bungeemail_uuids set username='" + username + "' where uuid='" + uuid + "'");
+                    ps = sql.prepare("update bungeemail_uuids set username=? where uuid=?");
                 }
+                ps.setString(1, username);
+                ps.setString(2, uuid.toString());
+                sql.query(ps);
             }
         }, 1, TimeUnit.MILLISECONDS);
-    }
-
-    private String escapeBadChars(String str) {
-        return str.replaceAll("[\\\\'\"]", "\\\\$0");
     }
 
     public static class SQLMessage extends Message {
