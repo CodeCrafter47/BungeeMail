@@ -7,19 +7,15 @@ import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/**
- * Created by florian on 15.11.14.
- */
 public class FlatFileBackend implements IStorageBackend, Listener {
-    private BungeeMail plugin;
+    private Logger logger;
     private Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private File saveFile;
     private File tmpSaveFile;
@@ -27,7 +23,7 @@ public class FlatFileBackend implements IStorageBackend, Listener {
     private ReadWriteLock lock;
 
     public FlatFileBackend(BungeeMail plugin) {
-        this.plugin = plugin;
+        logger = plugin.getLogger();
         saveFile = new File(plugin.getDataFolder(), "data.json");
         tmpSaveFile = new File(plugin.getDataFolder(), "data.json.tmp");
         lock = new ReentrantReadWriteLock();
@@ -53,19 +49,27 @@ public class FlatFileBackend implements IStorageBackend, Listener {
         }
     }
 
-    @SneakyThrows
-    private void saveData() {
-        if (tmpSaveFile.exists()) {
-            tmpSaveFile.delete();
+    /**
+     * Attempts to save the mail data to a file
+     * @return true on success, false otherwise
+     */
+    private boolean saveData() {
+        try {
+            if (tmpSaveFile.exists()) {
+                if (!tmpSaveFile.delete()) return false;
+            }
+            if (!tmpSaveFile.createNewFile()) return false;
+            FileWriter fileWriter = new FileWriter(tmpSaveFile);
+            gson.toJson(data, fileWriter);
+            fileWriter.close();
+            if (saveFile.exists()) {
+                if (!saveFile.delete()) return false;
+            }
+            return tmpSaveFile.renameTo(saveFile);
+        } catch (IOException ex){
+            logger.log(Level.WARNING, "Failed to save file to disk", ex);
+            return false;
         }
-        tmpSaveFile.createNewFile();
-        FileWriter fileWriter = new FileWriter(tmpSaveFile);
-        gson.toJson(data, fileWriter);
-        fileWriter.close();
-        if (saveFile.exists()) {
-            saveFile.delete();
-        }
-        tmpSaveFile.renameTo(saveFile);
     }
 
     @Override
