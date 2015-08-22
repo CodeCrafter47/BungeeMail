@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.api.scheduler.ScheduledTask;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -22,9 +21,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-/**
- * Created by florian on 15.11.14.
- */
 public class BungeeMail extends Plugin {
 
     Configuration config;
@@ -42,7 +38,10 @@ public class BungeeMail extends Plugin {
     public void onEnable() {
         // enable it
         if (!getDataFolder().exists()) {
-            getDataFolder().mkdir();
+            if (getDataFolder().mkdir()) {
+                getLogger().severe("Failed to create plugin data folder, plugin won't be enabled");
+                return;
+            }
         }
 
         File file = new File(getDataFolder(), "config.yml");
@@ -55,7 +54,7 @@ public class BungeeMail extends Plugin {
 
         if (!config.getBoolean("useMySQL")) {
             final FlatFileBackend fileBackend = new FlatFileBackend(this);
-            if(!fileBackend.readData()){
+            if (!fileBackend.readData()) {
                 getLogger().log(Level.SEVERE, "Failed to load mail data from file, plugin won't be enabled");
                 return;
             }
@@ -76,7 +75,7 @@ public class BungeeMail extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new MailCommand("mail", "bungeemail.use", this));
         getProxy().getPluginManager().registerListener(this, new PlayerListener(this));
 
-        if(config.getBoolean("cleanup_enabled", false)){
+        if (config.getBoolean("cleanup_enabled", false)) {
             getProxy().getScheduler().schedule(this, new Runnable() {
                 @Override
                 public void run() {
@@ -88,8 +87,8 @@ public class BungeeMail extends Plugin {
 
     @Override
     public void onDisable() {
-        if(storage != null && storage instanceof FlatFileBackend){
-            ((FlatFileBackend)storage).saveData();
+        if (storage != null && storage instanceof FlatFileBackend) {
+            ((FlatFileBackend) storage).saveData();
         }
     }
 
