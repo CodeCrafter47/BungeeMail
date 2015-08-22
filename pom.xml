@@ -47,6 +47,12 @@
             <version>7.1</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>codecrafter47.util</groupId>
+            <artifactId>chat-utils</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -96,6 +102,10 @@
                                 <relocation>
                                     <pattern>lib.PatPeter.SQLibrary</pattern>
                                     <shadedPattern>codecrafter47.bungeemail.lib.PatPeter.SQLibrary</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>codecrafter47.util</pattern>
+                                    <shadedPattern>codecrafter47.bungeemail.util</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

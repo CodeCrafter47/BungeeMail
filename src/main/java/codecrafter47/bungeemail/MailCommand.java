@@ -16,7 +16,7 @@ public class MailCommand extends Command {
     @Override
     public void execute(CommandSender commandSender, String[] args) {
         if (args.length < 1) {
-            commandSender.sendMessage(ChatParser.parse(plugin.config.getString("help")));
+            commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("help")));
             return;
         }
         switch (args[0]) {
@@ -34,7 +34,7 @@ public class MailCommand extends Command {
                 return;
             case "sendall":
                 if (!commandSender.hasPermission("bungeemail.sendall")) {
-                    commandSender.sendMessage(ChatParser.parse(plugin.config.getString("noPermission", "&cYou. Don't. Have. Permission.")));
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("noPermission", "&cYou. Don't. Have. Permission.")));
                     return;
                 }
                 String text = "";
@@ -52,7 +52,7 @@ public class MailCommand extends Command {
                 plugin.sendMail((ProxiedPlayer) commandSender, target, text);
                 return;
             case "help":
-                commandSender.sendMessage(ChatParser.parse(plugin.config.getString("help")));
+                commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("help")));
                 return;
             case "del":
                 if (args.length < 2) {
@@ -62,15 +62,15 @@ public class MailCommand extends Command {
                 if (args[1].equalsIgnoreCase("all")) {
                     for (Message msg : plugin.getStorage().getMessagesFor(((ProxiedPlayer) commandSender).getUniqueId(), false))
                         plugin.getStorage().delete(msg);
-                    commandSender.sendMessage(ChatParser.parse(plugin.config.getString("deletedAll", "&aYou deleted all mails.")));
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedAll", "&aYou deleted all mails.")));
                 } else if (args[1].equalsIgnoreCase("read")) {
                     for (Message msg : plugin.getStorage().getMessagesFor(((ProxiedPlayer) commandSender).getUniqueId(), true))
                         plugin.getStorage().delete(msg);
-                    commandSender.sendMessage(ChatParser.parse(plugin.config.getString("deletedRead", "&aYou deleted all read mails.")));
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedRead", "&aYou deleted all read mails.")));
                 } else {
                     int id = Integer.valueOf(args[1]);
                     plugin.getStorage().delete(id);
-                    commandSender.sendMessage(ChatParser.parse(plugin.config.getString("deletedSingle", "&aYou deleted 1 message.")));
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedSingle", "&aYou deleted 1 message.")));
                 }
                 return;
             default:
