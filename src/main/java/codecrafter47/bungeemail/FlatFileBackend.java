@@ -19,7 +19,8 @@ public class FlatFileBackend implements IStorageBackend {
     private File saveFile;
     private File tmpSaveFile;
     private Data data;
-    private ReadWriteLock lock = new ReentrantReadWriteLock();
+    private ReadWriteLock mailLock = new ReentrantReadWriteLock();
+    private ReadWriteLock uuidLock = new ReentrantReadWriteLock();
     private ReadWriteLock fileLock = new ReentrantReadWriteLock();
     private boolean saveRequested = false;
 
@@ -69,7 +70,8 @@ public class FlatFileBackend implements IStorageBackend {
     public boolean saveData() {
         if (saveRequested) {
             saveRequested = false;
-            lock.readLock().lock();
+            mailLock.readLock().lock();
+            uuidLock.readLock().lock();
             fileLock.writeLock().lock();
             try {
                 if (tmpSaveFile.exists()) {
@@ -88,7 +90,8 @@ public class FlatFileBackend implements IStorageBackend {
                 return false;
             } finally {
                 fileLock.writeLock().unlock();
-                lock.readLock().unlock();
+                uuidLock.readLock().unlock();
+                mailLock.readLock().unlock();
             }
         }
         return true;
@@ -103,7 +106,7 @@ public class FlatFileBackend implements IStorageBackend {
 
     @Override
     public List<Message> getMessagesFor(UUID uuid, boolean onlyNew) {
-        lock.readLock().lock();
+        mailLock.readLock().lock();
         try {
             ArrayList<Message> messages = new ArrayList<>();
             for (Message message : data.data) {
@@ -111,48 +114,48 @@ public class FlatFileBackend implements IStorageBackend {
             }
             return messages;
         } finally {
-            lock.readLock().unlock();
+            mailLock.readLock().unlock();
         }
     }
 
     @Override
     public void saveMessage(Message message) {
-        lock.writeLock().lock();
+        mailLock.writeLock().lock();
         try {
             if (!data.data.contains(message)) {
                 data.data.add(message);
             }
             requestSave();
         } finally {
-            lock.writeLock().unlock();
+            mailLock.writeLock().unlock();
         }
     }
 
     @Override
     public void markRead(Message message) {
-        lock.writeLock().lock();
+        mailLock.writeLock().lock();
         try {
             message.setRead(true);
             requestSave();
         } finally {
-            lock.writeLock().unlock();
+            mailLock.writeLock().unlock();
         }
     }
 
     @Override
     public void delete(Message message) {
-        lock.writeLock().lock();
+        mailLock.writeLock().lock();
         try {
             data.data.remove(message);
             requestSave();
         } finally {
-            lock.writeLock().unlock();
+            mailLock.writeLock().unlock();
         }
     }
 
     @Override
     public void delete(int id) {
-        lock.writeLock().lock();
+        mailLock.writeLock().lock();
         try {
             Iterator<Message> iterator = data.data.iterator();
             while (iterator.hasNext()) {
@@ -162,13 +165,13 @@ public class FlatFileBackend implements IStorageBackend {
             }
             requestSave();
         } finally {
-            lock.writeLock().unlock();
+            mailLock.writeLock().unlock();
         }
     }
 
     @Override
     public void deleteOlder(long time, boolean deleteUnread) {
-        lock.writeLock().lock();
+        mailLock.writeLock().lock();
         try {
             for (Iterator<Message> iterator = data.data.iterator(); iterator.hasNext(); ) {
                 Message message = iterator.next();
@@ -178,48 +181,48 @@ public class FlatFileBackend implements IStorageBackend {
             }
             requestSave();
         } finally {
-            lock.writeLock().unlock();
+            mailLock.writeLock().unlock();
         }
     }
 
     @Override
     public UUID getUUIDForName(String name) {
-        lock.readLock().lock();
+        uuidLock.readLock().lock();
         try {
             return data.uuidMap.get(name);
         } finally {
-            lock.readLock().unlock();
+            uuidLock.readLock().unlock();
         }
     }
 
     @Override
     public Collection<UUID> getAllKnownUUIDs() {
-        lock.readLock().lock();
+        uuidLock.readLock().lock();
         try {
             return data.uuidMap.values();
         } finally {
-            lock.readLock().unlock();
+            uuidLock.readLock().unlock();
         }
     }
 
     @Override
     public Collection<String> getKnownUsernames() {
-        lock.readLock().lock();
+        uuidLock.readLock().lock();
         try {
             return data.uuidMap.keySet();
         } finally {
-            lock.readLock().unlock();
+            uuidLock.readLock().unlock();
         }
     }
 
     @Override
     public void updateUserEntry(UUID uuid, String username) {
-        lock.writeLock().lock();
+        uuidLock.writeLock().lock();
         try {
             data.uuidMap.put(username, uuid);
             requestSave();
         } finally {
-            lock.writeLock().unlock();
+            uuidLock.writeLock().unlock();
         }
     }
 
