@@ -10,9 +10,6 @@ import net.md_5.bungee.event.EventPriority;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by florian on 15.11.14.
- */
 public class PlayerListener implements Listener {
 
     private BungeeMail plugin;

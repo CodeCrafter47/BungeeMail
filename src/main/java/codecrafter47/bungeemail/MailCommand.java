@@ -56,7 +56,7 @@ public class MailCommand extends Command {
                 return;
             case "del":
                 if (args.length < 2) {
-                    commandSender.sendMessage("/mail del <all|read|#>");
+                    commandSender.sendMessage(plugin.getChatParser().parse("/mail del <all|read|#>"));
                     return;
                 }
                 if (args[1].equalsIgnoreCase("all")) {
@@ -81,7 +81,6 @@ public class MailCommand extends Command {
                     text += args[i] + " ";
                 }
                 plugin.sendMail((ProxiedPlayer) commandSender, target, text);
-                return;
         }
     }
 

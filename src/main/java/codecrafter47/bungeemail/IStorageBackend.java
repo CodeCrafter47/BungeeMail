@@ -4,9 +4,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Created by florian on 15.11.14.
- */
 public interface IStorageBackend {
     List<Message> getMessagesFor(UUID uuid, boolean onlyNew);
 
