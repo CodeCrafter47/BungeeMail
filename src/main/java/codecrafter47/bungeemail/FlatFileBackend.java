@@ -3,7 +3,6 @@ package codecrafter47.bungeemail;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.SneakyThrows;
-import lombok.Synchronized;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -13,29 +12,33 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Created by florian on 15.11.14.
  */
 public class FlatFileBackend implements IStorageBackend, Listener {
-
     private BungeeMail plugin;
     private Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private File saveFile;
     private File tmpSaveFile;
     private Data data;
+    private ReadWriteLock lock;
 
     public FlatFileBackend(BungeeMail plugin) {
         this.plugin = plugin;
         saveFile = new File(plugin.getDataFolder(), "data.json");
         tmpSaveFile = new File(plugin.getDataFolder(), "data.json.tmp");
+        lock = new ReentrantReadWriteLock();
         readData();
         plugin.getProxy().getPluginManager().registerListener(plugin, this);
     }
 
     @SneakyThrows
-    @Synchronized
     private void readData() {
+        // This method is only called during construction of the class,
+        // so no synchronization is needed.
         if (saveFile.exists()) {
             try {
                 FileReader fileReader = new FileReader(saveFile);
@@ -51,9 +54,8 @@ public class FlatFileBackend implements IStorageBackend, Listener {
     }
 
     @SneakyThrows
-    @Synchronized
     private void saveData() {
-        if(tmpSaveFile.exists()){
+        if (tmpSaveFile.exists()) {
             tmpSaveFile.delete();
         }
         tmpSaveFile.createNewFile();
@@ -66,86 +68,126 @@ public class FlatFileBackend implements IStorageBackend, Listener {
         tmpSaveFile.renameTo(saveFile);
     }
 
-    @Synchronized
     @Override
     public List<Message> getMessagesFor(UUID uuid, boolean onlyNew) {
-        ArrayList<Message> messages = new ArrayList<>();
-        for (Message message : data.data) {
-            if (message.getRecipient().equals(uuid) && (!message.isRead() || !onlyNew)) messages.add(message);
+        lock.readLock().lock();
+        try {
+            ArrayList<Message> messages = new ArrayList<>();
+            for (Message message : data.data) {
+                if (message.getRecipient().equals(uuid) && (!message.isRead() || !onlyNew)) messages.add(message);
+            }
+            return messages;
+        } finally {
+            lock.readLock().unlock();
         }
-        return messages;
     }
 
-    @Synchronized
     @Override
     public void saveMessage(Message message) {
-        if (!data.data.contains(message)) {
-            data.data.add(message);
+        lock.writeLock().lock();
+        try {
+            if (!data.data.contains(message)) {
+                data.data.add(message);
+            }
+            saveData();
+        } finally {
+            lock.writeLock().unlock();
         }
-        saveData();
     }
 
-    @Synchronized
     @Override
     public void markRead(Message message) {
-        message.setRead(true);
-        saveData();
+        lock.writeLock().lock();
+        try {
+            message.setRead(true);
+            saveData();
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
-    @Synchronized
     @Override
     public void delete(Message message) {
-        data.data.remove(message);
-        saveData();
+        lock.writeLock().lock();
+        try {
+            data.data.remove(message);
+            saveData();
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
-    @Synchronized
     @Override
     public void delete(int id) {
-        Iterator<Message> iterator = data.data.iterator();
-        while (iterator.hasNext()) {
-            if (iterator.next().hashCode() == id) {
-                iterator.remove();
+        lock.writeLock().lock();
+        try {
+            Iterator<Message> iterator = data.data.iterator();
+            while (iterator.hasNext()) {
+                if (iterator.next().hashCode() == id) {
+                    iterator.remove();
+                }
             }
+            saveData();
+        } finally {
+            lock.writeLock().unlock();
         }
-        saveData();
     }
 
     @Override
-    @Synchronized
     public void deleteOlder(long time, boolean deleteUnread) {
-        for (Iterator<Message> iterator = data.data.iterator(); iterator.hasNext(); ) {
-            Message message = iterator.next();
-            if (message.getTime() < time && (deleteUnread || message.isRead())) {
-                iterator.remove();
+        lock.writeLock().lock();
+        try {
+            for (Iterator<Message> iterator = data.data.iterator(); iterator.hasNext(); ) {
+                Message message = iterator.next();
+                if (message.getTime() < time && (deleteUnread || message.isRead())) {
+                    iterator.remove();
+                }
             }
+            saveData();
+        } finally {
+            lock.writeLock().unlock();
         }
-        saveData();
     }
 
-    @Synchronized
     @Override
     public UUID getUUIDForName(String name) {
-        return data.uuidMap.get(name);
+        lock.readLock().lock();
+        try {
+            return data.uuidMap.get(name);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
-    @Synchronized
     @Override
     public Collection<UUID> getAllKnownUUIDs() {
-        return data.uuidMap.values();
+        lock.readLock().lock();
+        try {
+            return data.uuidMap.values();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
-    @Synchronized
     @Override
     public Collection<String> getKnownUsernames() {
-        return data.uuidMap.keySet();
+        lock.readLock().lock();
+        try {
+            return data.uuidMap.keySet();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
-    @Synchronized
     @EventHandler
     public void onJoin(PostLoginEvent event) {
-        data.uuidMap.put(event.getPlayer().getName(), event.getPlayer().getUniqueId());
-        saveData();
+        lock.writeLock().lock();
+        try {
+            data.uuidMap.put(event.getPlayer().getName(), event.getPlayer().getUniqueId());
+            saveData();
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     private static class Data {
