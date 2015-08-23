@@ -4,6 +4,8 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
+import java.util.logging.Level;
+
 public class MailCommand extends Command {
 
     private BungeeMail plugin;
@@ -25,12 +27,22 @@ public class MailCommand extends Command {
             case "read":
                 int start = 1;
                 if (args.length >= 2) start = Integer.valueOf(args[1]);
-                plugin.listMessages((ProxiedPlayer) commandSender, start, true, false);
+                try {
+                    plugin.listMessages((ProxiedPlayer) commandSender, start, true, false);
+                } catch (StorageException e) {
+                    plugin.getLogger().log(Level.SEVERE, "Failed to show mails to player", e);
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+                }
                 return;
             case "listall":
                 start = 1;
                 if (args.length >= 2) start = Integer.valueOf(args[1]);
-                plugin.listMessages((ProxiedPlayer) commandSender, start, true, true);
+                try {
+                    plugin.listMessages((ProxiedPlayer) commandSender, start, true, true);
+                } catch (StorageException e) {
+                    plugin.getLogger().log(Level.SEVERE, "Failed to show mails to player", e);
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+                }
                 return;
             case "sendall":
                 if (!commandSender.hasPermission("bungeemail.sendall")) {
@@ -60,17 +72,32 @@ public class MailCommand extends Command {
                     return;
                 }
                 if (args[1].equalsIgnoreCase("all")) {
-                    for (Message msg : plugin.getStorage().getMessagesFor(((ProxiedPlayer) commandSender).getUniqueId(), false))
-                        plugin.getStorage().delete(msg);
-                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedAll", "&aYou deleted all mails.")));
+                    try {
+                        for (Message msg : plugin.getStorage().getMessagesFor(((ProxiedPlayer) commandSender).getUniqueId(), false))
+                            plugin.getStorage().delete(msg);
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedAll", "&aYou deleted all mails.")));
+                    } catch (StorageException e) {
+                        plugin.getLogger().log(Level.SEVERE, "Unable to process user command \"/mail del all\"", e);
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+                    }
                 } else if (args[1].equalsIgnoreCase("read")) {
-                    for (Message msg : plugin.getStorage().getMessagesFor(((ProxiedPlayer) commandSender).getUniqueId(), true))
-                        plugin.getStorage().delete(msg);
-                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedRead", "&aYou deleted all read mails.")));
+                    try {
+                        for (Message msg : plugin.getStorage().getMessagesFor(((ProxiedPlayer) commandSender).getUniqueId(), true))
+                            plugin.getStorage().delete(msg);
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedRead", "&aYou deleted all read mails.")));
+                    } catch (StorageException e) {
+                        plugin.getLogger().log(Level.SEVERE, "Unable to process user command \"/mail del read\"", e);
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+                    }
                 } else {
-                    int id = Integer.valueOf(args[1]);
-                    plugin.getStorage().delete(id);
-                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedSingle", "&aYou deleted 1 message.")));
+                    try {
+                        int id = Integer.valueOf(args[1]);
+                        plugin.getStorage().delete(id);
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedSingle", "&aYou deleted 1 message.")));
+                    } catch (StorageException | NumberFormatException e) {
+                        plugin.getLogger().log(Level.SEVERE, "Unable to process user command \"/mail del " + args[1] + "\"", e);
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+                    }
                 }
                 return;
             default:

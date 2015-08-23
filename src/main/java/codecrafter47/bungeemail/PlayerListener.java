@@ -1,5 +1,6 @@
 package codecrafter47.bungeemail;
 
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -8,7 +9,9 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public class PlayerListener implements Listener {
 
@@ -21,7 +24,18 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoin(LoginEvent event) {
         if (!event.isCancelled()) {
-            plugin.getStorage().updateUserEntry(event.getConnection().getUniqueId(), event.getConnection().getName());
+            final UUID uniqueId = event.getConnection().getUniqueId();
+            final String name = event.getConnection().getName();
+            ProxyServer.getInstance().getScheduler().runAsync(plugin, new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        plugin.getStorage().updateUserEntry(uniqueId, name);
+                    } catch (StorageException e) {
+                        plugin.getLogger().log(Level.SEVERE, "Unable to update a players uuid in the cache", e);
+                    }
+                }
+            });
         }
     }
 
@@ -32,7 +46,11 @@ public class PlayerListener implements Listener {
             @Override
             public void run() {
                 if (plugin.config.getBoolean("showMailsOnLogin", true)) {
-                    plugin.listMessages(player, 1, false, false);
+                    try {
+                        plugin.listMessages(player, 1, false, false);
+                    } catch (StorageException e) {
+                        plugin.getLogger().log(Level.SEVERE, "Failed to show mails to player", e);
+                    }
                 } else {
                     plugin.showLoginInfo(player);
                 }
@@ -47,10 +65,14 @@ public class PlayerListener implements Listener {
             event.getSuggestions().clear();
             String[] split = commandLine.split(" ");
             String begin = split[split.length - 1];
-            for (String player : plugin.getStorage().getKnownUsernames()) {
-                if (player.contains(begin)) {
-                    event.getSuggestions().add(player);
+            try {
+                for (String player : plugin.getStorage().getKnownUsernames()) {
+                    if (player.contains(begin)) {
+                        event.getSuggestions().add(player);
+                    }
                 }
+            } catch (StorageException e) {
+                plugin.getLogger().log(Level.WARNING, "An error occurred while accessing usernames for tab completion", e);
             }
         }
     }

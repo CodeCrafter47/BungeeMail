@@ -47,6 +47,7 @@ noPermission: "&cYou. Don't. Have. Permission."
 deletedSingle: "&aYou deleted 1 message."
 deletedRead: "&aYou deleted all old mails."
 deletedAll: "&aYou deleted all mails."
+commandError: "&cAn error occurred while processing your command: %error%"
 
 # Login
 showMailsOnLogin: true

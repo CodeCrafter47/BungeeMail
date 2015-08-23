@@ -5,24 +5,24 @@ import java.util.List;
 import java.util.UUID;
 
 public interface IStorageBackend {
-    List<Message> getMessagesFor(UUID uuid, boolean onlyNew);
+    List<Message> getMessagesFor(UUID uuid, boolean onlyNew) throws StorageException;
 
-    void saveMessage(Message message);
+    void saveMessage(Message message) throws StorageException;
 
-    void markRead(Message message);
+    void markRead(Message message) throws StorageException;
 
-    void delete(Message message);
+    void delete(Message message) throws StorageException;
 
-    UUID getUUIDForName(String name);
+    UUID getUUIDForName(String name) throws StorageException;
 
-    Collection<UUID> getAllKnownUUIDs();
+    Collection<UUID> getAllKnownUUIDs() throws StorageException;
 
     // used for tab-complete
-    Collection<String> getKnownUsernames();
+    Collection<String> getKnownUsernames() throws StorageException;
 
-    void updateUserEntry(UUID uuid, String username);
+    void updateUserEntry(UUID uuid, String username) throws StorageException;
 
-    void delete(int id);
+    void delete(int id) throws StorageException;
 
-    void deleteOlder(long time, boolean deleteUnread);
+    void deleteOlder(long time, boolean deleteUnread) throws StorageException;
 }

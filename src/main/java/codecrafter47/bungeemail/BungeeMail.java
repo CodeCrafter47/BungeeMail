@@ -79,7 +79,11 @@ public class BungeeMail extends Plugin {
             getProxy().getScheduler().schedule(this, new Runnable() {
                 @Override
                 public void run() {
-                    storage.deleteOlder(System.currentTimeMillis() - (60L * 60L * 24L * config.getLong("cleanup_threshold", 7L)), false);
+                    try {
+                        storage.deleteOlder(System.currentTimeMillis() - (60L * 60L * 24L * config.getLong("cleanup_threshold", 7L)), false);
+                    } catch (StorageException e) {
+                        getLogger().log(Level.WARNING, "Automatic database cleanup failed", e);
+                    }
                 }
             }, 1, 120, TimeUnit.MINUTES);
         }
@@ -92,8 +96,14 @@ public class BungeeMail extends Plugin {
         }
     }
 
-    public void listMessages(ProxiedPlayer player, int start, boolean listIfNotAvailable, boolean listReadMessages) {
-        List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), !listReadMessages);
+    public void listMessages(ProxiedPlayer player, int start, boolean listIfNotAvailable, boolean listReadMessages) throws StorageException{
+        List<Message> messages;
+        try {
+             messages = getStorage().getMessagesFor(player.getUniqueId(), !listReadMessages);
+        } catch (StorageException e) {
+            getLogger().log(Level.SEVERE, "Unable to get mails for " + player.getName() + " from storage", e);
+            throw e;
+        }
         if (messages.isEmpty() && listIfNotAvailable) {
             player.sendMessage(chatParser.parse(config.getString("noNewMessages")));
         }
@@ -115,17 +125,25 @@ public class BungeeMail extends Plugin {
                         replace("%time%", formatTime(message.getTime())).
                         replace("%id%", "" + message.hashCode()).
                         replace("%message%", message.getMessage())));
-                storage.markRead(message);
+                try {
+                    storage.markRead(message);
+                } catch (StorageException e) {
+                    getLogger().log(Level.SEVERE, "Failed to mark mail as read", e);
+                }
             }
             i++;
         }
     }
 
     public void showLoginInfo(ProxiedPlayer player) {
-        List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), true);
-        if (!messages.isEmpty()) {
-            player.sendMessage(chatParser.parse(config.getString("loginNewMails",
-                    "&aYou have %num% new mails. Type [i][command]/mail view[/command][/i] to read them.").replace("%num%", "" + messages.size())));
+        try {
+            List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), true);
+            if (!messages.isEmpty()) {
+                player.sendMessage(chatParser.parse(config.getString("loginNewMails",
+                        "&aYou have %num% new mails. Type [i][command]/mail view[/command][/i] to read them.").replace("%num%", "" + messages.size())));
+            }
+        } catch (StorageException e) {
+            getLogger().log(Level.WARNING, "Failed to show mail notification to " + player.getName(), e);
         }
     }
 
@@ -135,27 +153,48 @@ public class BungeeMail extends Plugin {
 
     public void sendMail(ProxiedPlayer sender, String target, String text) {
         long time = System.currentTimeMillis();
-        UUID targetUUID = storage.getUUIDForName(target);
+        UUID targetUUID = null;
+        try {
+            targetUUID = storage.getUUIDForName(target);
+        } catch (StorageException e) {
+            getLogger().log(Level.WARNING, "Unable to do a name to uuid lookup", e);
+        }
         if (targetUUID == null) {
             sender.sendMessage(chatParser.parse(config.getString("unknownTarget")));
             return;
         }
         Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, BBCodeChatParser.stripBBCode(text), false, time);
-        storage.saveMessage(message);
-        sender.sendMessage(chatParser.parse(config.getString("messageSent")));
-        if (getProxy().getPlayer(targetUUID) != null) {
-            getProxy().getPlayer(targetUUID).sendMessage(chatParser.parse(config.getString("receivedNewMessage")));
+        try {
+            storage.saveMessage(message);
+            sender.sendMessage(chatParser.parse(config.getString("messageSent")));
+            if (getProxy().getPlayer(targetUUID) != null) {
+                getProxy().getPlayer(targetUUID).sendMessage(chatParser.parse(config.getString("receivedNewMessage")));
+            }
+        } catch (StorageException e) {
+            getLogger().log(Level.WARNING, "Unable to save mail", e);
+            sender.sendMessage(getChatParser().parse(config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
         }
     }
 
     public void sendMailToAll(ProxiedPlayer sender, String text) {
         long time = System.currentTimeMillis();
-        Collection<UUID> targets = storage.getAllKnownUUIDs();
+        Collection<UUID> targets;
+        try {
+             targets = storage.getAllKnownUUIDs();
+        } catch (StorageException e) {
+            getLogger().log(Level.WARNING, "Unable to send mail to all players", e);
+            sender.sendMessage(getChatParser().parse(config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+            return;
+        }
         text = BBCodeChatParser.stripBBCode(text);
         for (UUID targetUUID : targets) {
             if (targetUUID.equals(sender.getUniqueId())) continue;
             Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, text, false, time);
-            storage.saveMessage(message);
+            try {
+                storage.saveMessage(message);
+            } catch (StorageException e) {
+                getLogger().log(Level.WARNING, "Unable to save mail", e);
+            }
             if (getProxy().getPlayer(targetUUID) != null) {
                 getProxy().getPlayer(targetUUID).sendMessage(chatParser.parse(config.getString("receivedNewMessage")));
             }

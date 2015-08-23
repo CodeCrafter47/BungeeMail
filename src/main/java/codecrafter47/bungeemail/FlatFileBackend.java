@@ -105,7 +105,7 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public List<Message> getMessagesFor(UUID uuid, boolean onlyNew) {
+    public List<Message> getMessagesFor(UUID uuid, boolean onlyNew) throws StorageException {
         mailLock.readLock().lock();
         try {
             ArrayList<Message> messages = new ArrayList<>();
@@ -119,7 +119,7 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public void saveMessage(Message message) {
+    public void saveMessage(Message message) throws StorageException {
         mailLock.writeLock().lock();
         try {
             if (!data.data.contains(message)) {
@@ -132,7 +132,7 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public void markRead(Message message) {
+    public void markRead(Message message) throws StorageException {
         mailLock.writeLock().lock();
         try {
             message.setRead(true);
@@ -143,7 +143,7 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public void delete(Message message) {
+    public void delete(Message message) throws StorageException {
         mailLock.writeLock().lock();
         try {
             data.data.remove(message);
@@ -154,7 +154,7 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public void delete(int id) {
+    public void delete(int id) throws StorageException {
         mailLock.writeLock().lock();
         try {
             Iterator<Message> iterator = data.data.iterator();
@@ -170,7 +170,7 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public void deleteOlder(long time, boolean deleteUnread) {
+    public void deleteOlder(long time, boolean deleteUnread) throws StorageException {
         mailLock.writeLock().lock();
         try {
             for (Iterator<Message> iterator = data.data.iterator(); iterator.hasNext(); ) {
@@ -186,7 +186,7 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public UUID getUUIDForName(String name) {
+    public UUID getUUIDForName(String name) throws StorageException {
         uuidLock.readLock().lock();
         try {
             return data.uuidMap.get(name);
@@ -196,7 +196,7 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public Collection<UUID> getAllKnownUUIDs() {
+    public Collection<UUID> getAllKnownUUIDs() throws StorageException {
         uuidLock.readLock().lock();
         try {
             return data.uuidMap.values();
@@ -206,7 +206,7 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public Collection<String> getKnownUsernames() {
+    public Collection<String> getKnownUsernames() throws StorageException {
         uuidLock.readLock().lock();
         try {
             return data.uuidMap.keySet();
@@ -216,7 +216,7 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public void updateUserEntry(UUID uuid, String username) {
+    public void updateUserEntry(UUID uuid, String username) throws StorageException {
         uuidLock.writeLock().lock();
         try {
             data.uuidMap.put(username, uuid);
