@@ -123,7 +123,7 @@ public class BungeeMail extends Plugin {
                 player.sendMessage(chatParser.parse(config.getString(message.isRead() ? "oldMessage" : "newMessage").
                         replace("%sender%", "[nobbcode]" + message.getSenderName() + "[/nobbcode]").
                         replace("%time%", formatTime(message.getTime())).
-                        replace("%id%", "" + message.hashCode()).
+                        replace("%id%", "" + message.getId()).
                         replace("%message%", message.getMessage())));
                 try {
                     storage.markRead(message);
@@ -163,9 +163,8 @@ public class BungeeMail extends Plugin {
             sender.sendMessage(chatParser.parse(config.getString("unknownTarget")));
             return;
         }
-        Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, BBCodeChatParser.stripBBCode(text), false, time);
         try {
-            storage.saveMessage(message);
+            storage.saveMessage(sender.getName(), sender.getUniqueId(), targetUUID, BBCodeChatParser.stripBBCode(text), false, time);
             sender.sendMessage(chatParser.parse(config.getString("messageSent")));
             if (getProxy().getPlayer(targetUUID) != null) {
                 getProxy().getPlayer(targetUUID).sendMessage(chatParser.parse(config.getString("receivedNewMessage")));
@@ -189,14 +188,13 @@ public class BungeeMail extends Plugin {
         text = BBCodeChatParser.stripBBCode(text);
         for (UUID targetUUID : targets) {
             if (targetUUID.equals(sender.getUniqueId())) continue;
-            Message message = new Message(sender.getName(), sender.getUniqueId(), targetUUID, text, false, time);
             try {
-                storage.saveMessage(message);
+                storage.saveMessage(sender.getName(), sender.getUniqueId(), targetUUID, text, false, time);
+                if (getProxy().getPlayer(targetUUID) != null) {
+                    getProxy().getPlayer(targetUUID).sendMessage(chatParser.parse(config.getString("receivedNewMessage")));
+                }
             } catch (StorageException e) {
                 getLogger().log(Level.WARNING, "Unable to save mail", e);
-            }
-            if (getProxy().getPlayer(targetUUID) != null) {
-                getProxy().getPlayer(targetUUID).sendMessage(chatParser.parse(config.getString("receivedNewMessage")));
             }
         }
         sender.sendMessage(chatParser.parse(config.getString("messageSentToAll").replaceAll("%num%", "" + (targets.size() - 1))));

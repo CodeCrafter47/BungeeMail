@@ -1,5 +1,6 @@
 package codecrafter47.bungeemail;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -8,6 +9,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
@@ -100,7 +102,7 @@ public class FlatFileBackend implements IStorageBackend {
     /**
      * called by all methods of this class that modify the data set to request a save.
      */
-    private void requestSave(){
+    private void requestSave() {
         saveRequested = true;
     }
 
@@ -119,13 +121,13 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public void saveMessage(Message message) throws StorageException {
+    public Message saveMessage(String senderName, UUID senderUUID, UUID recipient, String message, boolean read, long time) throws StorageException {
         mailLock.writeLock().lock();
         try {
-            if (!data.data.contains(message)) {
-                data.data.add(message);
-            }
+            FlatFileMessage mail = new FlatFileMessage(time, read, message, recipient, senderUUID, senderName);
+            data.data.add(mail);
             requestSave();
+            return mail;
         } finally {
             mailLock.writeLock().unlock();
         }
@@ -133,9 +135,10 @@ public class FlatFileBackend implements IStorageBackend {
 
     @Override
     public void markRead(Message message) throws StorageException {
+        Preconditions.checkArgument(message instanceof FlatFileMessage);
         mailLock.writeLock().lock();
         try {
-            message.setRead(true);
+            ((FlatFileMessage)message).setRead(true);
             requestSave();
         } finally {
             mailLock.writeLock().unlock();
@@ -144,6 +147,7 @@ public class FlatFileBackend implements IStorageBackend {
 
     @Override
     public void delete(Message message) throws StorageException {
+        Preconditions.checkArgument(message instanceof FlatFileMessage);
         mailLock.writeLock().lock();
         try {
             data.data.remove(message);
@@ -154,12 +158,12 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public void delete(int id) throws StorageException {
+    public void delete(long id) throws StorageException {
         mailLock.writeLock().lock();
         try {
-            Iterator<Message> iterator = data.data.iterator();
+            Iterator<FlatFileMessage> iterator = data.data.iterator();
             while (iterator.hasNext()) {
-                if (iterator.next().hashCode() == id) {
+                if (iterator.next().getId() == id) {
                     iterator.remove();
                 }
             }
@@ -173,7 +177,7 @@ public class FlatFileBackend implements IStorageBackend {
     public void deleteOlder(long time, boolean deleteUnread) throws StorageException {
         mailLock.writeLock().lock();
         try {
-            for (Iterator<Message> iterator = data.data.iterator(); iterator.hasNext(); ) {
+            for (Iterator<FlatFileMessage> iterator = data.data.iterator(); iterator.hasNext(); ) {
                 Message message = iterator.next();
                 if (message.getTime() < time && (deleteUnread || message.isRead())) {
                     iterator.remove();
@@ -226,8 +230,83 @@ public class FlatFileBackend implements IStorageBackend {
         }
     }
 
+    private static class FlatFileMessage implements Message {
+        private String senderName;
+        private UUID senderUUID;
+        private UUID recipient;
+        private String message;
+        private boolean read;
+        private long time;
+        private transient final long id;
+
+        private static AtomicLong idSupplier = new AtomicLong(1);
+
+        public FlatFileMessage(long time, boolean read, String message, UUID recipient, UUID senderUUID, String senderName) {
+            this();
+            this.time = time;
+            this.read = read;
+            this.message = message;
+            this.recipient = recipient;
+            this.senderUUID = senderUUID;
+            this.senderName = senderName;
+        }
+
+        public FlatFileMessage() {
+            id = idSupplier.getAndIncrement();
+        }
+
+        @Override
+        public String getSenderName() {
+            return senderName;
+        }
+
+        @Override
+        public UUID getSenderUUID() {
+            return senderUUID;
+        }
+
+        @Override
+        public UUID getRecipient() {
+            return recipient;
+        }
+
+        @Override
+        public String getMessage() {
+            return message;
+        }
+
+        @Override
+        public boolean isRead() {
+            return read;
+        }
+
+        @Override
+        public long getTime() {
+            return time;
+        }
+
+        @Override
+        public long getId() {
+            return id;
+        }
+
+        private void setRead(boolean read) {
+            this.read = read;
+        }
+
+        @Override
+        public int hashCode() {
+            return Long.hashCode(id);
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof FlatFileMessage && ((FlatFileMessage)other).getId() == getId();
+        }
+    }
+
     private static class Data {
-        private List<Message> data = new ArrayList<>();
+        private List<FlatFileMessage> data = new ArrayList<>();
         private Map<String, UUID> uuidMap = new HashMap<>();
     }
 }

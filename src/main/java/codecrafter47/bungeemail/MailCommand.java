@@ -91,7 +91,7 @@ public class MailCommand extends Command {
                     }
                 } else {
                     try {
-                        int id = Integer.valueOf(args[1]);
+                        long id = Long.valueOf(args[1]);
                         plugin.getStorage().delete(id);
                         commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedSingle", "&aYou deleted 1 message.")));
                     } catch (StorageException | NumberFormatException e) {

@@ -1,5 +1,6 @@
 package codecrafter47.bungeemail;
 
+import com.google.common.base.Preconditions;
 import lib.PatPeter.SQLibrary.Database;
 import lib.PatPeter.SQLibrary.MySQL;
 
@@ -55,8 +56,8 @@ public class MySQLBackend implements IStorageBackend {
                 String message = rs.getString("message");
                 boolean read = rs.getBoolean("read");
                 long time = rs.getLong("time");
-                int id = rs.getInt("id");
-                messages.add(new SQLMessage(senderName, senderUUID, recipient, message, read, time, id));
+                long id = rs.getLong("id");
+                messages.add(new SQLMessage(id, senderName, senderUUID, recipient, message, read, time));
             }
             return messages;
         } catch (SQLException e) {
@@ -65,31 +66,23 @@ public class MySQLBackend implements IStorageBackend {
     }
 
     @Override
-    public void saveMessage(Message message) throws StorageException {
+    public Message saveMessage(String senderName, UUID senderUUID, UUID recipient, String message, boolean read, long time) throws StorageException {
         try {
             if (!sql.isOpen()) {
                 sql.open();
             }
-            if (message instanceof SQLMessage) {
-                PreparedStatement ps = sql.prepare("update bungeemail_mails set senderName=?, senderUUID=?, recipient=?, message=?, `read`=?, time=? where id=?");
-                ps.setString(1, message.getSenderName());
-                ps.setString(2, message.getSenderUUID().toString());
-                ps.setString(3, message.getRecipient().toString());
-                ps.setString(4, message.getMessage());
-                ps.setBoolean(5, message.isRead());
-                ps.setLong(6, message.getTime());
-                ps.setLong(7, message.hashCode());
-                sql.query(ps);
-            } else {
-                PreparedStatement ps = sql.prepare("insert into bungeemail_mails values(NULL, ?, ?, ?, ?, ?, ?)");
-                ps.setString(1, message.getSenderName());
-                ps.setString(2, message.getSenderUUID().toString());
-                ps.setString(3, message.getRecipient().toString());
-                ps.setString(4, message.getMessage());
-                ps.setBoolean(5, message.isRead());
-                ps.setLong(6, message.getTime());
-                sql.query(ps);
+            PreparedStatement ps = sql.prepare("insert into bungeemail_mails values(NULL, ?, ?, ?, ?, ?, ?)");
+            ps.setString(1, senderName);
+            ps.setString(2, senderUUID.toString());
+            ps.setString(3, recipient.toString());
+            ps.setString(4, message);
+            ps.setBoolean(5, read);
+            ps.setLong(6, time);
+            ArrayList<Long> ids = sql.insert(ps);
+            if(ids.size() != 1){
+                throw new StorageException("Saving mail failed. " + ids.size() + " rows inserted. But should be 1");
             }
+            return new SQLMessage(ids.get(0), senderName, senderUUID, recipient, message, read, time);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -97,6 +90,7 @@ public class MySQLBackend implements IStorageBackend {
 
     @Override
     public void markRead(Message message) throws StorageException {
+        Preconditions.checkArgument(message instanceof SQLMessage);
         try {
             if (!sql.isOpen()) {
                 sql.open();
@@ -104,7 +98,7 @@ public class MySQLBackend implements IStorageBackend {
             PreparedStatement ps = sql.prepare("update bungeemail_mails set `read`=1 where id=?");
             ps.setLong(1, message.hashCode());
             sql.query(ps);
-            message.setRead(true);
+            ((SQLMessage)message).setRead(true);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -112,20 +106,11 @@ public class MySQLBackend implements IStorageBackend {
 
     @Override
     public void delete(Message message) throws StorageException {
-        try {
-            if (!sql.isOpen()) {
-                sql.open();
-            }
-            PreparedStatement ps = sql.prepare("delete from bungeemail_mails where id=?");
-            ps.setLong(1, message.hashCode());
-            sql.query(ps);
-        } catch (SQLException e) {
-            throw new StorageException(e);
-        }
+        delete(message.getId());
     }
 
     @Override
-    public void delete(int id) throws StorageException {
+    public void delete(long id) throws StorageException {
         try {
             if (!sql.isOpen()) {
                 sql.open();
@@ -237,22 +222,72 @@ public class MySQLBackend implements IStorageBackend {
         }
     }
 
-    public static class SQLMessage extends Message {
-        int id;
+    public static class SQLMessage implements Message {
+        private final String senderName;
+        private final UUID senderUUID;
+        private final UUID recipient;
+        private final String message;
+        private boolean read;
+        private final long time;
+        private final long id;
 
-        public SQLMessage(String senderName, UUID senderUUID, UUID recipient, String message, boolean read, long time, int id) {
-            super(senderName, senderUUID, recipient, message, read, time);
+        public SQLMessage(long id, String senderName, UUID senderUUID, UUID recipient, String message, boolean read, long time) {
             this.id = id;
+            this.time = time;
+            this.read = read;
+            this.message = message;
+            this.recipient = recipient;
+            this.senderUUID = senderUUID;
+            this.senderName = senderName;
         }
 
         @Override
-        public boolean equals(Object obj) {
-            return obj instanceof SQLMessage && ((SQLMessage) obj).id == id;
+        public String getSenderName() {
+            return senderName;
+        }
+
+        @Override
+        public UUID getSenderUUID() {
+            return senderUUID;
+        }
+
+        @Override
+        public UUID getRecipient() {
+            return recipient;
+        }
+
+        @Override
+        public String getMessage() {
+            return message;
+        }
+
+        @Override
+        public boolean isRead() {
+            return read;
+        }
+
+        @Override
+        public long getTime() {
+            return time;
+        }
+
+        @Override
+        public long getId() {
+            return id;
+        }
+
+        private void setRead(boolean read) {
+            this.read = read;
         }
 
         @Override
         public int hashCode() {
-            return id;
+            return Long.hashCode(id);
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof SQLMessage && ((SQLMessage)other).getId() == getId();
         }
     }
 }

@@ -7,7 +7,7 @@ import java.util.UUID;
 public interface IStorageBackend {
     List<Message> getMessagesFor(UUID uuid, boolean onlyNew) throws StorageException;
 
-    void saveMessage(Message message) throws StorageException;
+    Message saveMessage(String senderName, UUID senderUUID, UUID recipient, String message, boolean read, long time) throws StorageException;
 
     void markRead(Message message) throws StorageException;
 
@@ -22,7 +22,7 @@ public interface IStorageBackend {
 
     void updateUserEntry(UUID uuid, String username) throws StorageException;
 
-    void delete(int id) throws StorageException;
+    void delete(long id) throws StorageException;
 
     void deleteOlder(long time, boolean deleteUnread) throws StorageException;
 }
