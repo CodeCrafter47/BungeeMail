@@ -42,9 +42,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>lib.PatPeter.SQLibrary</groupId>
-            <artifactId>SQLibrary</artifactId>
-            <version>7.1</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-dbcp2</artifactId>
+            <version>2.1.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -88,20 +88,10 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <filters>
-                                <filter>
-                                    <artifact>lib.PatPeter.SQLibrary:SQLibrary</artifact>
-                                    <excludes>
-                                        <exclude>plugin.yml</exclude>
-                                        <exclude>config.yml</exclude>
-                                        <exclude>properties.yml</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
                             <relocations>
                                 <relocation>
-                                    <pattern>lib.PatPeter.SQLibrary</pattern>
-                                    <shadedPattern>codecrafter47.bungeemail.lib.PatPeter.SQLibrary</shadedPattern>
+                                    <pattern>org.apache.commons</pattern>
+                                    <shadedPattern>codecrafter47.bungeemail.lib.org.apache.commons</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>codecrafter47.util</pattern>
