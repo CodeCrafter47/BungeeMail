@@ -1,13 +1,11 @@
 package codecrafter47.bungeemail;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -42,9 +40,10 @@ public class FlatFileBackend implements IStorageBackend {
         try {
             if (saveFile.exists()) {
                 try {
-                    FileReader fileReader = new FileReader(saveFile);
-                    data = gson.fromJson(fileReader, Data.class);
-                    fileReader.close();
+                    FileInputStream fin = new FileInputStream(saveFile);
+                    Reader reader = new InputStreamReader(fin, Charsets.UTF_8);
+                    data = gson.fromJson(reader, Data.class);
+                    reader.close();
                     return true;
                 } catch (Exception ex) {
                     logger.log(Level.WARNING, "Failed to read data.gson", ex);
@@ -80,9 +79,9 @@ public class FlatFileBackend implements IStorageBackend {
                     if (!tmpSaveFile.delete()) return false;
                 }
                 if (!tmpSaveFile.createNewFile()) return false;
-                FileWriter fileWriter = new FileWriter(tmpSaveFile);
-                gson.toJson(data, fileWriter);
-                fileWriter.close();
+                Writer writer = new OutputStreamWriter(new FileOutputStream(tmpSaveFile), Charsets.UTF_8);
+                gson.toJson(data, writer);
+                writer.close();
                 if (saveFile.exists()) {
                     if (!saveFile.delete()) return false;
                 }
