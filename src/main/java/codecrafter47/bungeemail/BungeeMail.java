@@ -38,7 +38,7 @@ public class BungeeMail extends Plugin {
     public void onEnable() {
         // enable it
         if (!getDataFolder().exists()) {
-            if (getDataFolder().mkdir()) {
+            if (!getDataFolder().mkdir()) {
                 getLogger().severe("Failed to create plugin data folder, plugin won't be enabled");
                 return;
             }
