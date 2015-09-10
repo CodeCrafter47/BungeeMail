@@ -157,12 +157,15 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
-    public void delete(long id) throws StorageException {
+    public boolean delete(long id, UUID recipient) throws StorageException {
+        boolean deleted = false;
         mailLock.writeLock().lock();
         try {
             Iterator<FlatFileMessage> iterator = data.data.iterator();
             while (iterator.hasNext()) {
-                if (iterator.next().getId() == id) {
+                Message message = iterator.next();
+                if (message.getId() == id && message.getRecipient().equals(recipient)) {
+                    deleted = true;
                     iterator.remove();
                 }
             }
@@ -170,6 +173,7 @@ public class FlatFileBackend implements IStorageBackend {
         } finally {
             mailLock.writeLock().unlock();
         }
+        return deleted;
     }
 
     @Override

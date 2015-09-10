@@ -22,7 +22,7 @@ public interface IStorageBackend {
 
     void updateUserEntry(UUID uuid, String username) throws StorageException;
 
-    void delete(long id) throws StorageException;
+    boolean delete(long id, UUID recipient) throws StorageException;
 
     void deleteOlder(long time, boolean deleteUnread) throws StorageException;
 }

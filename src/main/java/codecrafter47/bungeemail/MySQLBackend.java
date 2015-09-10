@@ -6,7 +6,6 @@ import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 
 import javax.sql.DataSource;
-import java.beans.*;
 import java.sql.*;
 import java.sql.Statement;
 import java.util.*;
@@ -122,14 +121,15 @@ public class MySQLBackend implements IStorageBackend {
 
     @Override
     public void delete(Message message) throws StorageException {
-        delete(message.getId());
+        delete(message.getId(), message.getRecipient());
     }
 
     @Override
-    public void delete(long id) throws StorageException {
+    public boolean delete(long id, UUID recipient) throws StorageException {
         try (Connection connection = dataSource.getConnection()){
-            try (PreparedStatement ps = connection.prepareStatement("delete from bungeemail_mails where id=?")) {
+            try (PreparedStatement ps = connection.prepareStatement("delete from bungeemail_mails where id=? and recipient=?")) {
                 ps.setLong(1, id);
+                ps.setString(2, recipient.toString());
                 if(ps.executeUpdate() == 0){
                     throw new StorageException("Tried to delete non-existent mail");
                 }
@@ -137,6 +137,7 @@ public class MySQLBackend implements IStorageBackend {
         } catch (SQLException e) {
             throw new StorageException(e);
         }
+        return true;
     }
 
     @Override

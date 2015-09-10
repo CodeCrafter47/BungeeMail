@@ -92,7 +92,7 @@ public class MailCommand extends Command {
                 } else {
                     try {
                         long id = Long.valueOf(args[1]);
-                        plugin.getStorage().delete(id);
+                        plugin.getStorage().delete(id, ((ProxiedPlayer) commandSender).getUniqueId());
                         commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedSingle", "&aYou deleted 1 message.")));
                     } catch (StorageException | NumberFormatException e) {
                         plugin.getLogger().log(Level.SEVERE, "Unable to process user command \"/mail del " + args[1] + "\"", e);
