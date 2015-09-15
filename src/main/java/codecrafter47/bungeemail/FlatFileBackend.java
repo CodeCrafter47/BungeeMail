@@ -137,7 +137,7 @@ public class FlatFileBackend implements IStorageBackend {
         Preconditions.checkArgument(message instanceof FlatFileMessage);
         mailLock.writeLock().lock();
         try {
-            ((FlatFileMessage)message).setRead(true);
+            ((FlatFileMessage) message).setRead(true);
             requestSave();
         } finally {
             mailLock.writeLock().unlock();
@@ -196,7 +196,16 @@ public class FlatFileBackend implements IStorageBackend {
     public UUID getUUIDForName(String name) throws StorageException {
         uuidLock.readLock().lock();
         try {
-            return data.uuidMap.get(name);
+            UUID uuid = data.uuidMap.get(name);
+            if (uuid == null) {
+                // TODO better performance?
+                for (Map.Entry<String, UUID> entry : data.uuidMap.entrySet()) {
+                    if (entry.getKey().equalsIgnoreCase(name)) {
+                        uuid = entry.getValue();
+                    }
+                }
+            }
+            return uuid;
         } finally {
             uuidLock.readLock().unlock();
         }
@@ -304,7 +313,7 @@ public class FlatFileBackend implements IStorageBackend {
 
         @Override
         public boolean equals(Object other) {
-            return other instanceof FlatFileMessage && ((FlatFileMessage)other).getId() == getId();
+            return other instanceof FlatFileMessage && ((FlatFileMessage) other).getId() == getId();
         }
     }
 
