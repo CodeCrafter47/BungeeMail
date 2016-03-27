@@ -170,7 +170,9 @@ public class BungeeMail extends Plugin {
             return;
         }
         try {
-            storage.saveMessage(sender.getName(), sender.getUniqueId(), targetUUID, BBCodeChatParser.stripBBCode(text), false, time);
+            String message = BBCodeChatParser.stripBBCode(text);
+            message = message.replaceAll("(?<link>(?:(https?)://)?([-\\w_\\.]{2,}\\.[a-z]{2,4})(/\\S*)?)", "[url]${link}[/url]");
+            storage.saveMessage(sender.getName(), sender.getUniqueId(), targetUUID, message, false, time);
             sender.sendMessage(chatParser.parse(config.getString("messageSent")));
             if (getProxy().getPlayer(targetUUID) != null) {
                 getProxy().getPlayer(targetUUID).sendMessage(chatParser.parse(config.getString("receivedNewMessage")));
@@ -192,6 +194,7 @@ public class BungeeMail extends Plugin {
             return;
         }
         text = BBCodeChatParser.stripBBCode(text);
+        text = text.replaceAll("(?<link>(?:(https?)://)?([-\\w_\\.]{2,}\\.[a-z]{2,4})(/\\S*)?)", "[url]${link}[/url]");
         for (UUID targetUUID : targets) {
             if (targetUUID.equals(sender.getUniqueId())) continue;
             try {
