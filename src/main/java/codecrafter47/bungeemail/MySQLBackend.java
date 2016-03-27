@@ -293,7 +293,7 @@ public class MySQLBackend implements IStorageBackend {
 
         @Override
         public int hashCode() {
-            return Long.hashCode(id);
+            return Long.valueOf(id).hashCode();
         }
 
         @Override
