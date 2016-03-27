@@ -6,7 +6,7 @@
 
     <groupId>codecrafter47</groupId>
     <artifactId>BungeeMail</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.2</version>
     <name>BungeeMail</name>
 
     <repositories>
