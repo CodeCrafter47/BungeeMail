@@ -72,7 +72,7 @@ public class BungeeMail extends Plugin {
 
         instance = this;
 
-        getProxy().getPluginManager().registerCommand(this, new MailCommand("mail", "bungeemail.use", this));
+        getProxy().getPluginManager().registerCommand(this, new MailCommand(config.getString("mail_command", "mail"), "bungeemail.use", this));
         getProxy().getPluginManager().registerListener(this, new PlayerListener(this));
 
         if (config.getBoolean("cleanup_enabled", false)) {

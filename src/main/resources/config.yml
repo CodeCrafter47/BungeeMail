@@ -26,6 +26,10 @@
 # whether clickable things in chat are to be underlined
 underlineLinks: true
 
+# Command used for sending/ reading mails, etc.
+# if you change this to "gmail" players have to use /gmail send ... instead of /mail send ...
+mail_command: mail
+
 # Messages
 noNewMessages: "&eYou don't have any new messages"
 listallHeader: "&9[==== Showing %start% to %end% of %max% mails === [command=/mail listall %next%]next[/command] ====]"
