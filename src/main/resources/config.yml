@@ -58,6 +58,9 @@ showMailsOnLogin: true
 # this is shown on login if the above is false; otherwise the player is shown the output of /mail view directly
 loginNewMails: "&aYou have %num% new mails. Type [i][command]/mail view[/command][/i] to read them."
 
+# show the player the same info as on login when he changes to another server
+showMailsOnServerSwitch: true
+
 # SQL Connection information
 # if you set useMySQL to false all data will be stored in a flatfile
 useMySQL: false
