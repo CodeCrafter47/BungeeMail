@@ -96,6 +96,12 @@ public class BungeeMail extends Plugin {
         }
     }
 
+    @SneakyThrows
+    void reload() {
+        File file = new File(getDataFolder(), "config.yml");
+        config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
+    }
+
     public void listMessages(ProxiedPlayer player, int start, boolean listIfNotAvailable, boolean listReadMessages) throws StorageException{
         List<Message> messages;
         try {

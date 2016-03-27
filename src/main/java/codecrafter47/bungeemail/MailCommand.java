@@ -55,6 +55,13 @@ public class MailCommand extends Command {
                 }
                 plugin.sendMailToAll((ProxiedPlayer) commandSender, text);
                 return;
+            case "reload":
+                if (!commandSender.hasPermission("bungeemail.admin")) {
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("noPermission", "&cYou. Don't. Have. Permission.")));
+                    return;
+                }
+                plugin.reload();
+                return;
             case "send":
                 String target = args[1];
                 text = "";
