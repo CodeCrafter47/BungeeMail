@@ -147,7 +147,7 @@ public class MySQLBackend implements IStorageBackend {
             if (deleteUnread) {
                 sql = "delete from bungeemail_mails where time < ?";
             } else {
-                sql = "delete from bungeemail_mails where time < ? and `read`=0";
+                sql = "delete from bungeemail_mails where time < ? and `read`=1";
             }
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setLong(1, time);
