@@ -158,6 +158,10 @@ public class BungeeMail extends Plugin {
     }
 
     public void sendMail(ProxiedPlayer sender, String target, String text) {
+        if (text.trim().isEmpty()) {
+            sender.sendMessage(chatParser.parse(config.getString("emptyMail", "&cYou can't send empty mails.")));
+            return;
+        }
         long time = System.currentTimeMillis();
         UUID targetUUID = null;
         try {
@@ -184,6 +188,10 @@ public class BungeeMail extends Plugin {
     }
 
     public void sendMailToAll(ProxiedPlayer sender, String text) {
+        if (text.trim().isEmpty()) {
+            sender.sendMessage(chatParser.parse(config.getString("emptyMail", "&cYou can't send empty mails.")));
+            return;
+        }
         long time = System.currentTimeMillis();
         Collection<UUID> targets;
         try {
