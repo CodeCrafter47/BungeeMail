@@ -63,6 +63,10 @@ public class MailCommand extends Command {
                 plugin.reload();
                 return;
             case "send":
+                if (args.length < 3) {
+                    commandSender.sendMessage(plugin.getChatParser().parse("&cUsage: &f[suggest=/mail send ]/mail send <player> <message>[/suggest]"));
+                    return;
+                }
                 String target = args[1];
                 text = "";
                 for (int i = 2; i < args.length; i++) {
