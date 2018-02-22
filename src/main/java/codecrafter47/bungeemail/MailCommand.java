@@ -34,7 +34,7 @@ public class MailCommand extends Command {
                     }
                 }
                 try {
-                    plugin.listMessages((ProxiedPlayer) commandSender, start, true, false);
+                    plugin.listMessages(commandSender, start, true, false);
                 } catch (StorageException e) {
                     plugin.getLogger().log(Level.SEVERE, "Failed to show mails to player", e);
                     commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
@@ -50,7 +50,7 @@ public class MailCommand extends Command {
                     }
                 }
                 try {
-                    plugin.listMessages((ProxiedPlayer) commandSender, start, true, true);
+                    plugin.listMessages(commandSender, start, true, true);
                 } catch (StorageException e) {
                     plugin.getLogger().log(Level.SEVERE, "Failed to show mails to player", e);
                     commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
@@ -65,7 +65,7 @@ public class MailCommand extends Command {
                 for (int i = 1; i < args.length; i++) {
                     text += args[i] + " ";
                 }
-                plugin.sendMailToAll((ProxiedPlayer) commandSender, text);
+                plugin.sendMailToAll(commandSender, text);
                 return;
             case "reload":
                 if (!commandSender.hasPermission("bungeemail.admin")) {
@@ -84,7 +84,7 @@ public class MailCommand extends Command {
                 for (int i = 2; i < args.length; i++) {
                     text += args[i] + " ";
                 }
-                plugin.sendMail((ProxiedPlayer) commandSender, target, text);
+                plugin.sendMail(commandSender, target, text);
                 return;
             case "help":
                 commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("help")));
@@ -130,7 +130,7 @@ public class MailCommand extends Command {
                 for (int i = 1; i < args.length; i++) {
                     text += args[i] + " ";
                 }
-                plugin.sendMail((ProxiedPlayer) commandSender, target, text);
+                plugin.sendMail(commandSender, target, text);
         }
     }
 

@@ -160,6 +160,9 @@ public class MySQLBackend implements IStorageBackend {
 
     @Override
     public UUID getUUIDForName(String name) throws StorageException {
+        if ("Console".equals(name)) {
+            return BungeeMail.CONSOLE_UUID;
+        }
         try (Connection connection = dataSource.getConnection()){
             try (PreparedStatement ps = connection.prepareStatement("select uuid from bungeemail_uuids where username=?")) {
                 ps.setString(1, name);
