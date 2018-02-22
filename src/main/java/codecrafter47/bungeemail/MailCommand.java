@@ -26,7 +26,13 @@ public class MailCommand extends Command {
             case "list":
             case "read":
                 int start = 1;
-                if (args.length >= 2) start = Integer.valueOf(args[1]);
+                if (args.length >= 2) {
+                    try {
+                        start = Integer.valueOf(args[1]);
+                    } catch (NumberFormatException e) {
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.list", "&cWrong syntax! Use &b[suggest=/mail list ]/mail list <page>[/suggest]")));
+                    }
+                }
                 try {
                     plugin.listMessages((ProxiedPlayer) commandSender, start, true, false);
                 } catch (StorageException e) {
@@ -36,7 +42,13 @@ public class MailCommand extends Command {
                 return;
             case "listall":
                 start = 1;
-                if (args.length >= 2) start = Integer.valueOf(args[1]);
+                if (args.length >= 2) {
+                    try {
+                        start = Integer.valueOf(args[1]);
+                    } catch (NumberFormatException e) {
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.listall", "&cWrong syntax! Use &b[suggest=/mail listall ]/mail listall <page>[/suggest]")));
+                    }
+                }
                 try {
                     plugin.listMessages((ProxiedPlayer) commandSender, start, true, true);
                 } catch (StorageException e) {
