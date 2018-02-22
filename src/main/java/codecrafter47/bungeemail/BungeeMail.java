@@ -111,7 +111,7 @@ public class BungeeMail extends Plugin {
             throw e;
         }
         if (messages.isEmpty() && listIfNotAvailable) {
-            player.sendMessage(chatParser.parse(config.getString("noNewMessages")));
+            player.sendMessage(chatParser.parse(listReadMessages ? config.getString("noMessages") : config.getString("noNewMessages")));
         }
         if (messages.isEmpty()) return;
         if (listReadMessages)

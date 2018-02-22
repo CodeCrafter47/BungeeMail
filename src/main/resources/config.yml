@@ -31,6 +31,7 @@ underlineLinks: true
 mail_command: mail
 
 # Messages
+noMessages: "&eYou don't have any messages"
 noNewMessages: "&eYou don't have any new messages"
 listallHeader: "&9[==== Showing %start% to %end% of %max% mails === [command=/mail listall %next%]next[/command] ====]"
 listHeader: "&9[==== Showing %visible% of %max% messages. [command=/mail list]more[/command] ====]"
