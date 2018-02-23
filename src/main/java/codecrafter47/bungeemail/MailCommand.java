@@ -31,6 +31,7 @@ public class MailCommand extends Command {
                         start = Integer.valueOf(args[1]);
                     } catch (NumberFormatException e) {
                         commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.list", "&cWrong syntax! Use &b[suggest=/mail list ]/mail list <page>[/suggest]")));
+                        return;
                     }
                 }
                 try {
@@ -47,6 +48,7 @@ public class MailCommand extends Command {
                         start = Integer.valueOf(args[1]);
                     } catch (NumberFormatException e) {
                         commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.listall", "&cWrong syntax! Use &b[suggest=/mail listall ]/mail listall <page>[/suggest]")));
+                        return;
                     }
                 }
                 try {
