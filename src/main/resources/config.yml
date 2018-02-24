@@ -49,8 +49,10 @@ help: |-
   &b[suggest=/mail sendall ]/mail sendall <message>[/suggest] &esend [b]many[/b] mails :D
   &b[suggest=/mail del ]/mail del all|read|#[/suggest] &edelete mails
 wrongSyntax:
+  del: &cWrong syntax! Use &b[suggest=/mail del ]/mail del <all|read|#>[/suggest]
   list: &cWrong syntax! Use &b[suggest=/mail list ]/mail list <page>[/suggest]
   listall: &cWrong syntax! Use &b[suggest=/mail listall ]/mail listall <page>[/suggest]
+  send: &cWrong syntax! Use &b[suggest=/mail send ]/mail send <player> <message>[/suggest]
 noPermission: "&cYou. Don't. Have. Permission."
 deletedSingle: "&aYou deleted 1 message."
 deletedRead: "&aYou deleted all old mails."
