@@ -223,7 +223,9 @@ public class BungeeMail extends Plugin {
                 getLogger().log(Level.WARNING, "Unable to save mail", e);
             }
         }
-        getProxy().getConsole().sendMessage(chatParser.parse(config.getString("receivedNewMessage")));
+        if (!sender.equals(getProxy().getConsole())) {
+            getProxy().getConsole().sendMessage(chatParser.parse(config.getString("receivedNewMessage")));
+        }
         sender.sendMessage(chatParser.parse(config.getString("messageSentToAll").replaceAll("%num%", "" + (targets.size() - 1))));
     }
 }
