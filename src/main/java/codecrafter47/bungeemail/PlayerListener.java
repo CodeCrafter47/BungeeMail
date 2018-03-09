@@ -43,7 +43,9 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PostLoginEvent event) {
         final ProxiedPlayer player = event.getPlayer();
-        showNewMailInfo(player);
+        if (!plugin.config.getBoolean("showMailsOnServerSwitch")) {
+            showNewMailInfo(player);
+        }
     }
 
     @EventHandler
