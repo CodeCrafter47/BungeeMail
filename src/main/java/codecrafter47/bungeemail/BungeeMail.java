@@ -53,7 +53,9 @@ public class BungeeMail extends Plugin {
             Files.copy(getResourceAsStream("config.yml"), file.toPath());
         }
 
-        config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
+        Configuration defaultConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(getResourceAsStream("config.yml"));
+
+        config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file, defaultConfig);
 
         if (!config.getBoolean("useMySQL")) {
             final FlatFileBackend fileBackend = new FlatFileBackend(this);
@@ -75,7 +77,7 @@ public class BungeeMail extends Plugin {
 
         instance = this;
 
-        getProxy().getPluginManager().registerCommand(this, new MailCommand(config.getString("mail_command", "mail"), "bungeemail.use", this));
+        getProxy().getPluginManager().registerCommand(this, new MailCommand(config.getString("mail_command"), "bungeemail.use", this));
         getProxy().getPluginManager().registerListener(this, new PlayerListener(this));
 
         if (config.getBoolean("cleanup_enabled", false)) {
@@ -149,8 +151,7 @@ public class BungeeMail extends Plugin {
         try {
             List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), true);
             if (!messages.isEmpty()) {
-                player.sendMessage(chatParser.parse(config.getString("loginNewMails",
-                        "&aYou have %num% new mails. Type [i][command]/mail view[/command][/i] to read them.").replace("%num%", "" + messages.size())));
+                player.sendMessage(chatParser.parse(config.getString("loginNewMails").replace("%num%", "" + messages.size())));
             }
         } catch (StorageException e) {
             getLogger().log(Level.WARNING, "Failed to show mail notification to " + player.getName(), e);
@@ -163,7 +164,7 @@ public class BungeeMail extends Plugin {
 
     public void sendMail(CommandSender sender, String target, String text) {
         if (text.trim().isEmpty()) {
-            sender.sendMessage(chatParser.parse(config.getString("emptyMail", "&cYou can't send empty mails.")));
+            sender.sendMessage(chatParser.parse(config.getString("emptyMail")));
             return;
         }
         long time = System.currentTimeMillis();
@@ -190,13 +191,13 @@ public class BungeeMail extends Plugin {
             }
         } catch (StorageException e) {
             getLogger().log(Level.WARNING, "Unable to save mail", e);
-            sender.sendMessage(getChatParser().parse(config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+            sender.sendMessage(getChatParser().parse(config.getString("commandError").replace("%error%", e.getMessage())));
         }
     }
 
     public void sendMailToAll(CommandSender sender, String text) {
         if (text.trim().isEmpty()) {
-            sender.sendMessage(chatParser.parse(config.getString("emptyMail", "&cYou can't send empty mails.")));
+            sender.sendMessage(chatParser.parse(config.getString("emptyMail")));
             return;
         }
         long time = System.currentTimeMillis();
@@ -206,7 +207,7 @@ public class BungeeMail extends Plugin {
              targets = storage.getAllKnownUUIDs();
         } catch (StorageException e) {
             getLogger().log(Level.WARNING, "Unable to send mail to all players", e);
-            sender.sendMessage(getChatParser().parse(config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+            sender.sendMessage(getChatParser().parse(config.getString("commandError").replace("%error%", e.getMessage())));
             return;
         }
         targets.add(CONSOLE_UUID);

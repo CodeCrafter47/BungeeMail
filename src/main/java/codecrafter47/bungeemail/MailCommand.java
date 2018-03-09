@@ -30,7 +30,7 @@ public class MailCommand extends Command {
                     try {
                         start = Integer.valueOf(args[1]);
                     } catch (NumberFormatException e) {
-                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.list", "&cWrong syntax! Use &b[suggest=/mail list ]/mail list <page>[/suggest]")));
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.list")));
                         return;
                     }
                 }
@@ -38,7 +38,7 @@ public class MailCommand extends Command {
                     plugin.listMessages(commandSender, start, true, false);
                 } catch (StorageException e) {
                     plugin.getLogger().log(Level.SEVERE, "Failed to show mails to player", e);
-                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError").replace("%error%", e.getMessage())));
                 }
                 return;
             case "listall":
@@ -47,7 +47,7 @@ public class MailCommand extends Command {
                     try {
                         start = Integer.valueOf(args[1]);
                     } catch (NumberFormatException e) {
-                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.listall", "&cWrong syntax! Use &b[suggest=/mail listall ]/mail listall <page>[/suggest]")));
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.listall")));
                         return;
                     }
                 }
@@ -55,12 +55,12 @@ public class MailCommand extends Command {
                     plugin.listMessages(commandSender, start, true, true);
                 } catch (StorageException e) {
                     plugin.getLogger().log(Level.SEVERE, "Failed to show mails to player", e);
-                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError").replace("%error%", e.getMessage())));
                 }
                 return;
             case "sendall":
                 if (!commandSender.hasPermission("bungeemail.sendall")) {
-                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("noPermission", "&cYou. Don't. Have. Permission.")));
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("noPermission")));
                     return;
                 }
                 String text = "";
@@ -71,14 +71,14 @@ public class MailCommand extends Command {
                 return;
             case "reload":
                 if (!commandSender.hasPermission("bungeemail.admin")) {
-                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("noPermission", "&cYou. Don't. Have. Permission.")));
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("noPermission")));
                     return;
                 }
                 plugin.reload();
                 return;
             case "send":
                 if (args.length < 2) {
-                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.send", "&cWrong syntax! Use &b[suggest=/mail send ]/mail send <player> <message>[/suggest]")));
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.send")));
                     return;
                 }
                 String target = args[1];
@@ -93,37 +93,37 @@ public class MailCommand extends Command {
                 return;
             case "del":
                 if (args.length < 2) {
-                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.del", "&cWrong syntax! Use &b[suggest=/mail del ]/mail del <all|read|#>[/suggest]")));
+                    commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.del")));
                     return;
                 }
                 if (args[1].equalsIgnoreCase("all")) {
                     try {
                         for (Message msg : plugin.getStorage().getMessagesFor(((ProxiedPlayer) commandSender).getUniqueId(), false))
                             plugin.getStorage().delete(msg);
-                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedAll", "&aYou deleted all mails.")));
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedAll")));
                     } catch (StorageException e) {
                         plugin.getLogger().log(Level.SEVERE, "Unable to process user command \"/mail del all\"", e);
-                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError").replace("%error%", e.getMessage())));
                     }
                 } else if (args[1].equalsIgnoreCase("read")) {
                     try {
                         for (Message msg : plugin.getStorage().getMessagesFor(((ProxiedPlayer) commandSender).getUniqueId(), true))
                             plugin.getStorage().delete(msg);
-                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedRead", "&aYou deleted all read mails.")));
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedRead")));
                     } catch (StorageException e) {
                         plugin.getLogger().log(Level.SEVERE, "Unable to process user command \"/mail del read\"", e);
-                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError").replace("%error%", e.getMessage())));
                     }
                 } else {
                     try {
                         long id = Long.valueOf(args[1]);
                         plugin.getStorage().delete(id, ((ProxiedPlayer) commandSender).getUniqueId());
-                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedSingle", "&aYou deleted 1 message.")));
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedSingle")));
                     } catch (NumberFormatException e) {
-                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.del", "&cWrong syntax! Use &b[suggest=/mail del ]/mail del <all|read|#>[/suggest]")));
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.del")));
                     } catch (StorageException e) {
                         plugin.getLogger().log(Level.SEVERE, "Unable to process user command \"/mail del " + args[1] + "\"", e);
-                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError", "&cAn error occurred while processing your command: %error%").replace("%error%", e.getMessage())));
+                        commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("commandError").replace("%error%", e.getMessage())));
                     }
                 }
                 return;

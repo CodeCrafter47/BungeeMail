@@ -49,7 +49,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerServerSwitch(ServerSwitchEvent event) {
         final ProxiedPlayer player = event.getPlayer();
-        if (plugin.config.getBoolean("showMailsOnServerSwitch", false)) {
+        if (plugin.config.getBoolean("showMailsOnServerSwitch")) {
             showNewMailInfo(player);
         }
     }
@@ -58,7 +58,7 @@ public class PlayerListener implements Listener {
         plugin.getProxy().getScheduler().schedule(plugin, new Runnable() {
             @Override
             public void run() {
-                if (plugin.config.getBoolean("showMailsOnLogin", true)) {
+                if (plugin.config.getBoolean("showMailsOnLogin")) {
                     try {
                         plugin.listMessages(player, 1, false, false);
                     } catch (StorageException e) {
@@ -74,7 +74,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onTabComplete(TabCompleteEvent event) {
         String commandLine = event.getCursor();
-        if (commandLine.startsWith("/" + plugin.config.getString("mail_command", "mail"))) {
+        if (commandLine.startsWith("/" + plugin.config.getString("mail_command"))) {
             event.getSuggestions().clear();
             String[] split = commandLine.split(" ");
             String begin = split[split.length - 1];
