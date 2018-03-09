@@ -74,7 +74,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onTabComplete(TabCompleteEvent event) {
         String commandLine = event.getCursor();
-        if (commandLine.startsWith("/mail")) {
+        if (commandLine.startsWith("/" + plugin.config.getString("mail_command", "mail"))) {
             event.getSuggestions().clear();
             String[] split = commandLine.split(" ");
             String begin = split[split.length - 1];

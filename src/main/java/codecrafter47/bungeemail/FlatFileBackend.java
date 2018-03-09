@@ -194,6 +194,9 @@ public class FlatFileBackend implements IStorageBackend {
 
     @Override
     public UUID getUUIDForName(String name) throws StorageException {
+        if ("Console".equals(name)) {
+            return BungeeMail.CONSOLE_UUID;
+        }
         uuidLock.readLock().lock();
         try {
             UUID uuid = data.uuidMap.get(name);
