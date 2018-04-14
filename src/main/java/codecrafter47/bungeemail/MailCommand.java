@@ -4,6 +4,7 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class MailCommand extends Command {
@@ -96,9 +97,10 @@ public class MailCommand extends Command {
                     commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.del")));
                     return;
                 }
+                UUID senderUUID = commandSender instanceof ProxiedPlayer ? ((ProxiedPlayer) commandSender).getUniqueId() : BungeeMail.CONSOLE_UUID;
                 if (args[1].equalsIgnoreCase("all")) {
                     try {
-                        for (Message msg : plugin.getStorage().getMessagesFor(((ProxiedPlayer) commandSender).getUniqueId(), false))
+                        for (Message msg : plugin.getStorage().getMessagesFor(senderUUID, false))
                             plugin.getStorage().delete(msg);
                         commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedAll")));
                     } catch (StorageException e) {
@@ -107,7 +109,7 @@ public class MailCommand extends Command {
                     }
                 } else if (args[1].equalsIgnoreCase("read")) {
                     try {
-                        for (Message msg : plugin.getStorage().getMessagesFor(((ProxiedPlayer) commandSender).getUniqueId(), true))
+                        for (Message msg : plugin.getStorage().getMessagesFor(senderUUID, true))
                             plugin.getStorage().delete(msg);
                         commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedRead")));
                     } catch (StorageException e) {
@@ -117,7 +119,7 @@ public class MailCommand extends Command {
                 } else {
                     try {
                         long id = Long.valueOf(args[1]);
-                        plugin.getStorage().delete(id, ((ProxiedPlayer) commandSender).getUniqueId());
+                        plugin.getStorage().delete(id, senderUUID);
                         commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("deletedSingle")));
                     } catch (NumberFormatException e) {
                         commandSender.sendMessage(plugin.getChatParser().parse(plugin.config.getString("wrongSyntax.del")));
