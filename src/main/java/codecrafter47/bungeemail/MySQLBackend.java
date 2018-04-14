@@ -187,7 +187,7 @@ public class MySQLBackend implements IStorageBackend {
                     while (rs.next()) {
                         uuids.add(UUID.fromString(rs.getString("uuid")));
                     }
-                    return uuids;
+                    return Collections.unmodifiableCollection(uuids);
                 }
             }
         } catch (SQLException e) {
@@ -204,7 +204,7 @@ public class MySQLBackend implements IStorageBackend {
                     while (rs.next()) {
                         names.add(rs.getString("username"));
                     }
-                    return names;
+                    return Collections.unmodifiableCollection(names);
                 }
             }
         } catch (SQLException e) {

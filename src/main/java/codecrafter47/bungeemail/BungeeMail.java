@@ -2,6 +2,7 @@ package codecrafter47.bungeemail;
 
 import codecrafter47.util.chat.BBCodeChatParser;
 import codecrafter47.util.chat.ChatParser;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -15,10 +16,7 @@ import net.md_5.bungee.config.YamlConfiguration;
 import java.io.File;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -202,7 +200,7 @@ public class BungeeMail extends Plugin {
         }
         long time = System.currentTimeMillis();
         UUID senderUUID = sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId() : CONSOLE_UUID;
-        Collection<UUID> targets;
+        Iterable<UUID> targets;
         try {
              targets = storage.getAllKnownUUIDs();
         } catch (StorageException e) {
@@ -210,9 +208,10 @@ public class BungeeMail extends Plugin {
             sender.sendMessage(getChatParser().parse(config.getString("commandError").replace("%error%", e.getMessage())));
             return;
         }
-        targets.add(CONSOLE_UUID);
+        targets = Iterables.concat(targets, Collections.singletonList(CONSOLE_UUID));
         text = BBCodeChatParser.stripBBCode(text);
         text = text.replaceAll("(?<link>(?:(https?)://)?([-\\w_\\.]{2,}\\.[a-z]{2,4})(/\\S*)?)", "[url]${link}[/url]");
+        int count = 0;
         for (UUID targetUUID : targets) {
             if (targetUUID.equals(senderUUID)) continue;
             try {
@@ -220,6 +219,7 @@ public class BungeeMail extends Plugin {
                 if (getProxy().getPlayer(targetUUID) != null) {
                     getProxy().getPlayer(targetUUID).sendMessage(chatParser.parse(config.getString("receivedNewMessage")));
                 }
+                count++;
             } catch (StorageException e) {
                 getLogger().log(Level.WARNING, "Unable to save mail", e);
             }
@@ -227,6 +227,6 @@ public class BungeeMail extends Plugin {
         if (!sender.equals(getProxy().getConsole())) {
             getProxy().getConsole().sendMessage(chatParser.parse(config.getString("receivedNewMessage")));
         }
-        sender.sendMessage(chatParser.parse(config.getString("messageSentToAll").replaceAll("%num%", "" + (targets.size() - 1))));
+        sender.sendMessage(chatParser.parse(config.getString("messageSentToAll").replaceAll("%num%", Integer.toString(count))));
     }
 }

@@ -2,6 +2,7 @@ package codecrafter47.bungeemail;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -218,7 +219,7 @@ public class FlatFileBackend implements IStorageBackend {
     public Collection<UUID> getAllKnownUUIDs() throws StorageException {
         uuidLock.readLock().lock();
         try {
-            return data.uuidMap.values();
+            return ImmutableList.copyOf(data.uuidMap.values());
         } finally {
             uuidLock.readLock().unlock();
         }
@@ -228,7 +229,7 @@ public class FlatFileBackend implements IStorageBackend {
     public Collection<String> getKnownUsernames() throws StorageException {
         uuidLock.readLock().lock();
         try {
-            return data.uuidMap.keySet();
+            return ImmutableList.copyOf(data.uuidMap.keySet());
         } finally {
             uuidLock.readLock().unlock();
         }
