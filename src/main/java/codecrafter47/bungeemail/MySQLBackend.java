@@ -38,7 +38,9 @@ public class MySQLBackend implements IStorageBackend {
         }
         ConnectionFactory connectionFactory = new DriverManagerConnectionFactory("jdbc:mysql://" + plugin.config.getString("mysql_hostname") + ":" + plugin.config.getInt("mysql_port") + "/" + plugin.config.getString("mysql_database"), plugin.config.getString("mysql_username"), plugin.config.getString("mysql_password"));
         PoolableConnectionFactory poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory, null);
-        ObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<>(poolableConnectionFactory);
+        GenericObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<>(poolableConnectionFactory);
+        connectionPool.setTestOnBorrow(true);
+        connectionPool.setTestOnCreate(true);
         poolableConnectionFactory.setPool(connectionPool);
         this.dataSource = new PoolingDataSource<>(connectionPool);
     }
