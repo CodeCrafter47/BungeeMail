@@ -21,7 +21,8 @@ public class MySQLBackend implements IStorageBackend {
         try (Connection connection = dataSource.getConnection()) {
             try(Statement statement = connection.createStatement()){
                 statement.execute("CREATE TABLE IF NOT EXISTS bungeemail_mails (id int NOT NULL AUTO_INCREMENT,senderName varchar(20), senderUUID varchar(40), recipient varchar(40), `message` varchar(255), `read` boolean, `time` bigint, PRIMARY KEY (id))");
-                statement.execute("CREATE TABLE IF NOT EXISTS bungeemail_uuids (id int NOT NULL AUTO_INCREMENT,username varchar(20), uuid varchar(40),PRIMARY KEY (id))");
+                statement.execute("DROP TABLE IF EXISTS bungeemail_uuids");
+                statement.execute("CREATE TABLE IF NOT EXISTS bungeemail_uuids_v2 (username varchar(20) NOT NULL UNIQUE PRIMARY KEY, uuid varchar(40))");
             }
         } catch (SQLException e) {
             plugin.getLogger().warning("MySQL setup failed");
@@ -166,7 +167,7 @@ public class MySQLBackend implements IStorageBackend {
             return BungeeMail.CONSOLE_UUID;
         }
         try (Connection connection = dataSource.getConnection()){
-            try (PreparedStatement ps = connection.prepareStatement("select uuid from bungeemail_uuids where username=?")) {
+            try (PreparedStatement ps = connection.prepareStatement("select uuid from bungeemail_uuids_v2 where username=?")) {
                 ps.setString(1, name);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
@@ -184,7 +185,7 @@ public class MySQLBackend implements IStorageBackend {
     public Collection<UUID> getAllKnownUUIDs() throws StorageException {
         try (Connection connection = dataSource.getConnection()){
             try(Statement statement = connection.createStatement()) {
-                try (ResultSet rs = statement.executeQuery("select uuid from bungeemail_uuids")) {
+                try (ResultSet rs = statement.executeQuery("select uuid from bungeemail_uuids_v2")) {
                     Collection<UUID> uuids = new ArrayList<>();
                     while (rs.next()) {
                         uuids.add(UUID.fromString(rs.getString("uuid")));
@@ -201,7 +202,7 @@ public class MySQLBackend implements IStorageBackend {
     public Collection<String> getKnownUsernames() throws StorageException {
         try (Connection connection = dataSource.getConnection()){
             try(Statement statement = connection.createStatement()) {
-                try (ResultSet rs = statement.executeQuery("select username from bungeemail_uuids")) {
+                try (ResultSet rs = statement.executeQuery("select username from bungeemail_uuids_v2")) {
                     Collection<String> names = new ArrayList<>();
                     while (rs.next()) {
                         names.add(rs.getString("username"));
@@ -217,21 +218,10 @@ public class MySQLBackend implements IStorageBackend {
     @Override
     public void updateUserEntry(final UUID uuid, final String username) throws StorageException {
         try (Connection connection = dataSource.getConnection()){
-            try(PreparedStatement ps = connection.prepareStatement("insert into bungeemail_uuids values(NULL, ?, ?)", Statement.RETURN_GENERATED_KEYS)){
+            try(PreparedStatement ps = connection.prepareStatement("insert into bungeemail_uuids_v2 (username, uuid) values(?, ?) ON DUPLICATE KEY UPDATE uuid=VALUES(uuid)")){
                 ps.setString(1, username);
                 ps.setString(2, uuid.toString());
-                if(ps.executeUpdate() == 1){
-                    try (ResultSet key = ps.getGeneratedKeys()){
-                        if(key.next()) {
-                            long id = key.getLong(1);
-                            try (PreparedStatement ps2 = connection.prepareStatement("delete from bungeemail_uuids where uuid = ? and id != ?", Statement.RETURN_GENERATED_KEYS)) {
-                                ps2.setString(1, uuid.toString());
-                                ps2.setLong(2, id);
-                                ps2.executeUpdate();
-                            }
-                        }
-                    }
-                }
+                ps.execute();
             }
         } catch (SQLException e) {
             throw new StorageException(e);
