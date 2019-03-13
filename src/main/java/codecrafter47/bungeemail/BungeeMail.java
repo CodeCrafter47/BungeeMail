@@ -6,8 +6,11 @@ import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.chat.ComponentSerializer;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -120,17 +123,19 @@ public class BungeeMail extends Plugin {
         int i = 1;
         int end = start + 9;
         if (end >= messages.size()) end = messages.size();
-        sender.sendMessage(ChatUtil.parseBBCode(config.getString(listReadMessages ? "listallHeader" : "listHeader").
+        List<BaseComponent> output = new ArrayList<>();
+        output.addAll(Arrays.asList(ChatUtil.parseBBCode(config.getString(listReadMessages ? "listallHeader" : "listHeader").
                 replace("%start%", "" + start).replace("%end%", "" + end).
                 replace("%max%", "" + messages.size()).replace("%list%", listReadMessages ? "listall" : "list").
-                replace("%next%", "" + (end + 1)).replace("%visible%", messages.size() > 10 ? "" + 10 : ("" + messages.size()))));
+                replace("%next%", "" + (end + 1)).replace("%visible%", messages.size() > 10 ? "" + 10 : ("" + messages.size())))));
         for (Message message : messages) {
             if (i >= start && i < start + 10) {
-                sender.sendMessage(ChatUtil.parseBBCode(config.getString(message.isRead() ? "oldMessage" : "newMessage").
+                output.add(new TextComponent("\n"));
+                output.addAll(Arrays.asList(ChatUtil.parseBBCode(config.getString(message.isRead() ? "oldMessage" : "newMessage").
                         replace("%sender%", "[nobbcode]" + message.getSenderName() + "[/nobbcode]").
                         replace("%time%", formatTime(message.getTime())).
                         replace("%id%", "" + message.getId()).
-                        replace("%message%", message.getMessage())));
+                        replace("%message%", message.getMessage()))));
                 try {
                     storage.markRead(message);
                 } catch (StorageException e) {
@@ -139,6 +144,7 @@ public class BungeeMail extends Plugin {
             }
             i++;
         }
+        sender.sendMessage(output.toArray(new BaseComponent[0]));
     }
 
     public void showLoginInfo(ProxiedPlayer player) {
