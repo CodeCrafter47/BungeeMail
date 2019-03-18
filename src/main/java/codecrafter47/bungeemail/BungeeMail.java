@@ -1,6 +1,7 @@
 package codecrafter47.bungeemail;
 
 import codecrafter47.util.chat.ChatUtil;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import lombok.Getter;
@@ -143,6 +144,14 @@ public class BungeeMail extends Plugin {
                 }
             }
             i++;
+        }
+        String footerTemplate = config.getString(listReadMessages ? "listallFooter" : "listFooter");
+        if (!Strings.isNullOrEmpty(footerTemplate)) {
+            output.add(new TextComponent("\n"));
+            output.addAll(Arrays.asList(ChatUtil.parseBBCode(footerTemplate.
+                    replace("%start%", "" + start).replace("%end%", "" + end).
+                    replace("%max%", "" + messages.size()).replace("%list%", listReadMessages ? "listall" : "list").
+                    replace("%next%", "" + (end + 1)).replace("%visible%", messages.size() > 10 ? "" + 10 : ("" + messages.size())))));
         }
         sender.sendMessage(output.toArray(new BaseComponent[0]));
     }
