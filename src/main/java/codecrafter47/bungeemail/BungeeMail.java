@@ -28,6 +28,7 @@ public class BungeeMail extends Plugin {
     public static final UUID CONSOLE_UUID = new UUID(0, 0);
     
     Configuration config;
+    Messages messages;
 
     static BungeeMail instance;
 
@@ -73,6 +74,7 @@ public class BungeeMail extends Plugin {
             storage = new MySQLBackend(this);
         }
 
+        messages = new Messages(config);
         instance = this;
 
         getProxy().getPluginManager().registerCommand(this, new MailCommand(config.getString("mail_command"), "bungeemail.use", this));
@@ -103,36 +105,44 @@ public class BungeeMail extends Plugin {
     void reload() {
         File file = new File(getDataFolder(), "config.yml");
         config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
+        messages = new Messages(config);
     }
 
     public void listMessages(CommandSender sender, int start, boolean listIfNotAvailable, boolean listReadMessages) throws StorageException{
+        String noMessagesTemplate = listReadMessages ? messages.noMessages : messages.noNewMessages;
+        String headerTemplate = listReadMessages ? messages.listallHeader : messages.listHeader;
+        String oldMessageTemplate = messages.oldMessage;
+        String newMessageTemplate = messages.newMessage;
+        String footerTemplate = listReadMessages ? messages.listallFooter : messages.listFooter;
+
         List<Message> messages;
         UUID senderUUID = sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId() : CONSOLE_UUID;
         try {
-             messages = getStorage().getMessagesFor(senderUUID, !listReadMessages);
+            messages = getStorage().getMessagesFor(senderUUID, !listReadMessages);
         } catch (StorageException e) {
             getLogger().log(Level.SEVERE, "Unable to get mails for " + sender.getName() + " from storage", e);
             throw e;
         }
         if (messages.isEmpty() && listIfNotAvailable) {
-            sender.sendMessage(ChatUtil.parseBBCode(listReadMessages ? config.getString("noMessages") : config.getString("noNewMessages")));
+            sender.sendMessage(ChatUtil.parseBBCode(noMessagesTemplate));
         }
         if (messages.isEmpty()) return;
-        if (listReadMessages)
+        if (listReadMessages) {
             messages = Lists.reverse(messages);
+        }
         if (start >= messages.size()) start = 1;
         int i = 1;
         int end = start + 9;
         if (end >= messages.size()) end = messages.size();
         List<BaseComponent> output = new ArrayList<>();
-        output.addAll(Arrays.asList(ChatUtil.parseBBCode(config.getString(listReadMessages ? "listallHeader" : "listHeader").
+        output.addAll(Arrays.asList(ChatUtil.parseBBCode(headerTemplate.
                 replace("%start%", "" + start).replace("%end%", "" + end).
                 replace("%max%", "" + messages.size()).replace("%list%", listReadMessages ? "listall" : "list").
                 replace("%next%", "" + (end + 1)).replace("%visible%", messages.size() > 10 ? "" + 10 : ("" + messages.size())))));
         for (Message message : messages) {
             if (i >= start && i < start + 10) {
                 output.add(new TextComponent("\n"));
-                output.addAll(Arrays.asList(ChatUtil.parseBBCode(config.getString(message.isRead() ? "oldMessage" : "newMessage").
+                output.addAll(Arrays.asList(ChatUtil.parseBBCode((message.isRead() ? oldMessageTemplate : newMessageTemplate).
                         replace("%sender%", "[nobbcode]" + message.getSenderName() + "[/nobbcode]").
                         replace("%time%", formatTime(message.getTime())).
                         replace("%id%", "" + message.getId()).
@@ -145,7 +155,6 @@ public class BungeeMail extends Plugin {
             }
             i++;
         }
-        String footerTemplate = config.getString(listReadMessages ? "listallFooter" : "listFooter");
         if (!Strings.isNullOrEmpty(footerTemplate)) {
             output.add(new TextComponent("\n"));
             output.addAll(Arrays.asList(ChatUtil.parseBBCode(footerTemplate.
@@ -157,10 +166,11 @@ public class BungeeMail extends Plugin {
     }
 
     public void showLoginInfo(ProxiedPlayer player) {
+        String loginNewMailsTemplate = messages.loginNewMails;
         try {
             List<Message> messages = getStorage().getMessagesFor(player.getUniqueId(), true);
             if (!messages.isEmpty()) {
-                player.sendMessage(ChatUtil.parseBBCode(config.getString("loginNewMails").replace("%num%", "" + messages.size())));
+                player.sendMessage(ChatUtil.parseBBCode(loginNewMailsTemplate.replace("%num%", "" + messages.size())));
             }
         } catch (StorageException e) {
             getLogger().log(Level.WARNING, "Failed to show mail notification to " + player.getName(), e);
@@ -173,7 +183,7 @@ public class BungeeMail extends Plugin {
 
     public void sendMail(CommandSender sender, String target, String text) {
         if (text.trim().isEmpty()) {
-            sender.sendMessage(ChatUtil.parseBBCode(config.getString("emptyMail")));
+            sender.sendMessage(ChatUtil.parseBBCode(messages.emptyMail));
             return;
         }
         long time = System.currentTimeMillis();
@@ -185,28 +195,28 @@ public class BungeeMail extends Plugin {
             getLogger().log(Level.WARNING, "Unable to do a name to uuid lookup", e);
         }
         if (targetUUID == null) {
-            sender.sendMessage(ChatUtil.parseBBCode(config.getString("unknownTarget")));
+            sender.sendMessage(ChatUtil.parseBBCode(messages.unknownTarget));
             return;
         }
         try {
             String message = ChatUtil.stripBBCode(text);
             message = message.replaceAll("(?<link>(?:(https?)://)?([-\\w_\\.]{2,}\\.[a-z]{2,4})(/\\S*)?)", "[url]${link}[/url]");
             storage.saveMessage(sender.getName(), senderUUID, targetUUID, message, false, time);
-            sender.sendMessage(ChatUtil.parseBBCode(config.getString("messageSent")));
+            sender.sendMessage(ChatUtil.parseBBCode(messages.messageSent));
             if (getProxy().getPlayer(targetUUID) != null) {
-                getProxy().getPlayer(targetUUID).sendMessage(ChatUtil.parseBBCode(config.getString("receivedNewMessage")));
+                getProxy().getPlayer(targetUUID).sendMessage(ChatUtil.parseBBCode(messages.receivedNewMessage));
             } else if (targetUUID.equals(CONSOLE_UUID)) {
-                getProxy().getConsole().sendMessage(ChatUtil.parseBBCode(config.getString("receivedNewMessage")));
+                getProxy().getConsole().sendMessage(ChatUtil.parseBBCode(messages.receivedNewMessage));
             }
         } catch (StorageException e) {
             getLogger().log(Level.WARNING, "Unable to save mail", e);
-            sender.sendMessage(ChatUtil.parseBBCode(config.getString("commandError").replace("%error%", e.getMessage())));
+            sender.sendMessage(ChatUtil.parseBBCode(messages.commandError.replace("%error%", e.getMessage())));
         }
     }
 
     public void sendMailToAll(CommandSender sender, String text) {
         if (text.trim().isEmpty()) {
-            sender.sendMessage(ChatUtil.parseBBCode(config.getString("emptyMail")));
+            sender.sendMessage(ChatUtil.parseBBCode(messages.emptyMail));
             return;
         }
         long time = System.currentTimeMillis();
@@ -216,7 +226,7 @@ public class BungeeMail extends Plugin {
              targets = storage.getAllKnownUUIDs();
         } catch (StorageException e) {
             getLogger().log(Level.WARNING, "Unable to send mail to all players", e);
-            sender.sendMessage(ChatUtil.parseBBCode(config.getString("commandError").replace("%error%", e.getMessage())));
+            sender.sendMessage(ChatUtil.parseBBCode(messages.commandError.replace("%error%", e.getMessage())));
             return;
         }
         targets = Iterables.concat(targets, Collections.singletonList(CONSOLE_UUID));
@@ -228,7 +238,7 @@ public class BungeeMail extends Plugin {
             try {
                 storage.saveMessage(sender.getName(), senderUUID, targetUUID, text, false, time);
                 if (getProxy().getPlayer(targetUUID) != null) {
-                    getProxy().getPlayer(targetUUID).sendMessage(ChatUtil.parseBBCode(config.getString("receivedNewMessage")));
+                    getProxy().getPlayer(targetUUID).sendMessage(ChatUtil.parseBBCode(messages.receivedNewMessage));
                 }
                 count++;
             } catch (StorageException e) {
@@ -236,8 +246,8 @@ public class BungeeMail extends Plugin {
             }
         }
         if (!sender.equals(getProxy().getConsole())) {
-            getProxy().getConsole().sendMessage(ChatUtil.parseBBCode(config.getString("receivedNewMessage")));
+            getProxy().getConsole().sendMessage(ChatUtil.parseBBCode(messages.receivedNewMessage));
         }
-        sender.sendMessage(ChatUtil.parseBBCode(config.getString("messageSentToAll").replaceAll("%num%", Integer.toString(count))));
+        sender.sendMessage(ChatUtil.parseBBCode(messages.messageSentToAll.replaceAll("%num%", Integer.toString(count))));
     }
 }

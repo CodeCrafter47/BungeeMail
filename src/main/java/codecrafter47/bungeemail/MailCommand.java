@@ -20,7 +20,7 @@ public class MailCommand extends Command {
     @Override
     public void execute(CommandSender commandSender, String[] args) {
         if (args.length < 1) {
-            commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("help")));
+            commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.help));
             return;
         }
         switch (args[0]) {
@@ -32,7 +32,7 @@ public class MailCommand extends Command {
                     try {
                         start = Integer.valueOf(args[1]);
                     } catch (NumberFormatException e) {
-                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("wrongSyntax.list")));
+                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.wrongSyntaxList));
                         return;
                     }
                 }
@@ -40,7 +40,7 @@ public class MailCommand extends Command {
                     plugin.listMessages(commandSender, start, true, false);
                 } catch (StorageException e) {
                     plugin.getLogger().log(Level.SEVERE, "Failed to show mails to player", e);
-                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("commandError").replace("%error%", e.getMessage())));
+                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.commandError.replace("%error%", e.getMessage())));
                 }
                 return;
             case "listall":
@@ -49,7 +49,7 @@ public class MailCommand extends Command {
                     try {
                         start = Integer.valueOf(args[1]);
                     } catch (NumberFormatException e) {
-                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("wrongSyntax.listall")));
+                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.wrongSyntaxListall));
                         return;
                     }
                 }
@@ -57,12 +57,12 @@ public class MailCommand extends Command {
                     plugin.listMessages(commandSender, start, true, true);
                 } catch (StorageException e) {
                     plugin.getLogger().log(Level.SEVERE, "Failed to show mails to player", e);
-                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("commandError").replace("%error%", e.getMessage())));
+                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.commandError.replace("%error%", e.getMessage())));
                 }
                 return;
             case "sendall":
                 if (!commandSender.hasPermission("bungeemail.sendall")) {
-                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("noPermission")));
+                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.noPermission));
                     return;
                 }
                 String text = "";
@@ -73,14 +73,14 @@ public class MailCommand extends Command {
                 return;
             case "reload":
                 if (!commandSender.hasPermission("bungeemail.admin")) {
-                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("noPermission")));
+                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.noPermission));
                     return;
                 }
                 plugin.reload();
                 return;
             case "send":
                 if (args.length < 2) {
-                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("wrongSyntax.send")));
+                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.wrongSyntaxSend));
                     return;
                 }
                 String target = args[1];
@@ -91,11 +91,11 @@ public class MailCommand extends Command {
                 plugin.sendMail(commandSender, target, text);
                 return;
             case "help":
-                commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("help")));
+                commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.help));
                 return;
             case "del":
                 if (args.length < 2) {
-                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("wrongSyntax.del")));
+                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.wrongSyntaxDelete));
                     return;
                 }
                 UUID senderUUID = commandSender instanceof ProxiedPlayer ? ((ProxiedPlayer) commandSender).getUniqueId() : BungeeMail.CONSOLE_UUID;
@@ -103,30 +103,30 @@ public class MailCommand extends Command {
                     try {
                         for (Message msg : plugin.getStorage().getMessagesFor(senderUUID, false))
                             plugin.getStorage().delete(msg);
-                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("deletedAll")));
+                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.deletedAll));
                     } catch (StorageException e) {
                         plugin.getLogger().log(Level.SEVERE, "Unable to process user command \"/mail del all\"", e);
-                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("commandError").replace("%error%", e.getMessage())));
+                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.commandError.replace("%error%", e.getMessage())));
                     }
                 } else if (args[1].equalsIgnoreCase("read")) {
                     try {
                         for (Message msg : plugin.getStorage().getMessagesFor(senderUUID, true))
                             plugin.getStorage().delete(msg);
-                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("deletedRead")));
+                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.deletedRead));
                     } catch (StorageException e) {
                         plugin.getLogger().log(Level.SEVERE, "Unable to process user command \"/mail del read\"", e);
-                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("commandError").replace("%error%", e.getMessage())));
+                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.commandError.replace("%error%", e.getMessage())));
                     }
                 } else {
                     try {
                         long id = Long.valueOf(args[1]);
                         plugin.getStorage().delete(id, senderUUID);
-                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("deletedSingle")));
+                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.deletedSingle));
                     } catch (NumberFormatException e) {
-                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("wrongSyntax.del")));
+                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.wrongSyntaxDelete));
                     } catch (StorageException e) {
                         plugin.getLogger().log(Level.SEVERE, "Unable to process user command \"/mail del " + args[1] + "\"", e);
-                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.config.getString("commandError").replace("%error%", e.getMessage())));
+                        commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.commandError.replace("%error%", e.getMessage())));
                     }
                 }
                 return;
