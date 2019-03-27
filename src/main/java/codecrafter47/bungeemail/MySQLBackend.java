@@ -107,6 +107,23 @@ public class MySQLBackend implements IStorageBackend {
     }
 
     @Override
+    public int saveMessageToAll(String senderName, UUID senderUUID, String message, boolean read, long time) throws StorageException {
+        try (Connection connection = dataSource.getConnection()){
+            try (PreparedStatement ps = connection.prepareStatement("INSERT INTO bungeemail_mails (senderName, senderUUID, recipient, message, `read`, `time`) SELECT DISTINCT ?, ?, uuid, ?, ?, ? FROM bungeemail_uuids_v2")) {
+                ps.setString(1, senderName);
+                ps.setString(2, senderUUID.toString());
+                ps.setString(3, message);
+                ps.setBoolean(4, read);
+                ps.setLong(5, time);
+                int affectedRows = ps.executeUpdate();
+                return affectedRows;
+            }
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
     public void markRead(Message message) throws StorageException {
         Preconditions.checkArgument(message instanceof SQLMessage);
         try (Connection connection = dataSource.getConnection()){

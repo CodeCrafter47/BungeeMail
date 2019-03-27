@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -24,9 +25,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class BungeeMail extends Plugin {
-    
+
     public static final UUID CONSOLE_UUID = new UUID(0, 0);
-    
+
     Configuration config;
     Messages messages;
 
@@ -108,7 +109,7 @@ public class BungeeMail extends Plugin {
         messages = new Messages(config);
     }
 
-    public void listMessages(CommandSender sender, int start, boolean listIfNotAvailable, boolean listReadMessages) throws StorageException{
+    public void listMessages(CommandSender sender, int start, boolean listIfNotAvailable, boolean listReadMessages) throws StorageException {
         String noMessagesTemplate = listReadMessages ? messages.noMessages : messages.noNewMessages;
         String headerTemplate = listReadMessages ? messages.listallHeader : messages.listHeader;
         String oldMessageTemplate = messages.oldMessage;
@@ -221,33 +222,24 @@ public class BungeeMail extends Plugin {
         }
         long time = System.currentTimeMillis();
         UUID senderUUID = sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId() : CONSOLE_UUID;
-        Iterable<UUID> targets;
-        try {
-             targets = storage.getAllKnownUUIDs();
-        } catch (StorageException e) {
-            getLogger().log(Level.WARNING, "Unable to send mail to all players", e);
-            sender.sendMessage(ChatUtil.parseBBCode(messages.commandError.replace("%error%", e.getMessage())));
-            return;
-        }
-        targets = Iterables.concat(targets, Collections.singletonList(CONSOLE_UUID));
         text = ChatUtil.stripBBCode(text);
         text = text.replaceAll("(?<link>(?:(https?)://)?([-\\w_\\.]{2,}\\.[a-z]{2,4})(/\\S*)?)", "[url]${link}[/url]");
         int count = 0;
-        for (UUID targetUUID : targets) {
-            if (targetUUID.equals(senderUUID)) continue;
-            try {
-                storage.saveMessage(sender.getName(), senderUUID, targetUUID, text, false, time);
-                if (getProxy().getPlayer(targetUUID) != null) {
-                    getProxy().getPlayer(targetUUID).sendMessage(ChatUtil.parseBBCode(messages.receivedNewMessage));
-                }
-                count++;
-            } catch (StorageException e) {
-                getLogger().log(Level.WARNING, "Unable to save mail", e);
-            }
-        }
-        if (!sender.equals(getProxy().getConsole())) {
-            getProxy().getConsole().sendMessage(ChatUtil.parseBBCode(messages.receivedNewMessage));
+        try {
+            count += storage.saveMessageToAll(sender.getName(), senderUUID, text, false, time);
+            storage.saveMessage(sender.getName(), senderUUID, CONSOLE_UUID, text, false, time);
+            count++;
+        } catch (StorageException e) {
+            getLogger().log(Level.WARNING, "Unable to save mail", e);
+            sender.sendMessage(ChatUtil.parseBBCode(messages.commandError.replace("%error%", e.getMessage())));
         }
         sender.sendMessage(ChatUtil.parseBBCode(messages.messageSentToAll.replaceAll("%num%", Integer.toString(count))));
+
+        if (count > 0) {
+            for (ProxiedPlayer player : getProxy().getPlayers()) {
+                player.sendMessage(ChatUtil.parseBBCode(messages.receivedNewMessage));
+            }
+            getProxy().getConsole().sendMessage(ChatUtil.parseBBCode(messages.receivedNewMessage));
+        }
     }
 }

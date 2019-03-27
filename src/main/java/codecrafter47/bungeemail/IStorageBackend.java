@@ -9,6 +9,8 @@ public interface IStorageBackend {
 
     Message saveMessage(String senderName, UUID senderUUID, UUID recipient, String message, boolean read, long time) throws StorageException;
 
+    int saveMessageToAll(String senderName, UUID senderUUID, String message, boolean read, long time) throws StorageException;
+
     void markRead(Message message) throws StorageException;
 
     void delete(Message message) throws StorageException;

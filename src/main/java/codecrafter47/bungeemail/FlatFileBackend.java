@@ -134,6 +134,22 @@ public class FlatFileBackend implements IStorageBackend {
     }
 
     @Override
+    public int saveMessageToAll(String senderName, UUID senderUUID, String message, boolean read, long time) throws StorageException {
+        Collection<UUID> targets = getAllKnownUUIDs();
+        mailLock.writeLock().lock();
+        try {
+            for (UUID recipient : targets) {
+                FlatFileMessage mail = new FlatFileMessage(time, read, message, recipient, senderUUID, senderName);
+                data.data.add(mail);
+            }
+            requestSave();
+            return targets.size();
+        } finally {
+            mailLock.writeLock().unlock();
+        }
+    }
+
+    @Override
     public void markRead(Message message) throws StorageException {
         Preconditions.checkArgument(message instanceof FlatFileMessage);
         mailLock.writeLock().lock();
