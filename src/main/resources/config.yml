@@ -72,7 +72,7 @@ showMailsOnServerSwitch: true
 # if you set useMySQL to false all data will be stored in a flatfile
 useMySQL: false
 
-# if you set useMySQL to true please enter valid connection inormation
+# if you set useMySQL to true please enter valid connection information
 mysql_hostname: localhost
 mysql_port: 3306
 mysql_database: minecraft
