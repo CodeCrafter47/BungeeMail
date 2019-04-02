@@ -23,9 +23,6 @@
 # It is possible to use [nocolor][/nocolor] to prevent the use of legacy color codes in a block;
 # [nobbcode][/nobbcode] will prevent the use of bbcode in a block;
 
-# whether clickable things in chat are to be underlined
-underlineLinks: true
-
 # Command used for sending/ reading mails, etc.
 # if you change this to "gmail" players have to use /gmail send ... instead of /mail send ...
 mail_command: mail
