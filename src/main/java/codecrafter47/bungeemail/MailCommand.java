@@ -23,7 +23,7 @@ public class MailCommand extends Command {
             commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.help));
             return;
         }
-        switch (args[0]) {
+        switch (args[0].toLowerCase()) {
             case "view":
             case "list":
             case "read":
