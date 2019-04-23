@@ -183,10 +183,6 @@ public class BungeeMail extends Plugin {
     }
 
     public void sendMail(CommandSender sender, String target, String text) {
-        if (text.trim().isEmpty()) {
-            sender.sendMessage(ChatUtil.parseBBCode(messages.emptyMail));
-            return;
-        }
         long time = System.currentTimeMillis();
         UUID senderUUID = sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId() : CONSOLE_UUID;
         UUID targetUUID = null;
@@ -197,6 +193,11 @@ public class BungeeMail extends Plugin {
         }
         if (targetUUID == null) {
             sender.sendMessage(ChatUtil.parseBBCode(messages.unknownTarget));
+            return;
+        }
+        text = text.trim();
+        if (text.isEmpty()) {
+            sender.sendMessage(ChatUtil.parseBBCode(messages.emptyMail));
             return;
         }
         try {
@@ -216,7 +217,8 @@ public class BungeeMail extends Plugin {
     }
 
     public void sendMailToAll(CommandSender sender, String text) {
-        if (text.trim().isEmpty()) {
+        text = text.trim();
+        if (text.isEmpty()) {
             sender.sendMessage(ChatUtil.parseBBCode(messages.emptyMail));
             return;
         }
