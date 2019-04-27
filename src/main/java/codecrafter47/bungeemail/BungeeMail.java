@@ -204,7 +204,9 @@ public class BungeeMail extends Plugin {
             String message = ChatUtil.stripBBCode(text);
             message = message.replaceAll("(?<link>(?:(https?)://)?([-\\w_\\.]{2,}\\.[a-z]{2,4})(/\\S*)?)", "[url]${link}[/url]");
             storage.saveMessage(sender.getName(), senderUUID, targetUUID, message, false, time);
-            sender.sendMessage(ChatUtil.parseBBCode(messages.messageSent));
+            sender.sendMessage(ChatUtil.parseBBCode(messages.messageSent
+            .replace("%receiver%", target)
+            .replace("%message%", message)));
             if (getProxy().getPlayer(targetUUID) != null) {
                 getProxy().getPlayer(targetUUID).sendMessage(ChatUtil.parseBBCode(messages.receivedNewMessage));
             } else if (targetUUID.equals(CONSOLE_UUID)) {
