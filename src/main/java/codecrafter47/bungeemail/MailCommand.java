@@ -79,6 +79,10 @@ public class MailCommand extends Command {
                 plugin.reload();
                 return;
             case "send":
+                if (!commandSender.hasPermission("bungeemail.send")) {
+                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.noPermission));
+                    return;
+                }
                 if (args.length < 2) {
                     commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.wrongSyntaxSend));
                     return;
@@ -131,6 +135,10 @@ public class MailCommand extends Command {
                 }
                 return;
             default:
+                if (!commandSender.hasPermission("bungeemail.send")) {
+                    commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.help));
+                    return;
+                }
                 // send mail
                 target = args[0];
                 text = "";
