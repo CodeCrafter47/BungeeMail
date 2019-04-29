@@ -122,4 +122,22 @@
             </plugin>
         </plugins>
     </build>
+
+    <scm>
+        <developerConnection>scm:git:https://github.com/CodeCrafter47/BungeeMail</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>deployment</id>
+            <name>Internal Releases</name>
+            <url>http://nexus.codecrafter47.dyndns.eu/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>deployment</id>
+            <name>Internal Releases</name>
+            <url>http://nexus.codecrafter47.dyndns.eu/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
