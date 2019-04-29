@@ -16,6 +16,7 @@ import net.md_5.bungee.chat.ComponentSerializer;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
+import org.bstats.bungeecord.Metrics;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -77,6 +78,9 @@ public class BungeeMail extends Plugin {
 
         messages = new Messages(config);
         instance = this;
+
+        // Start metrics
+        Metrics metrics = new Metrics(this);
 
         getProxy().getPluginManager().registerCommand(this, new MailCommand(config.getString("mail_command"), "bungeemail.use", this));
         getProxy().getPluginManager().registerListener(this, new PlayerListener(this));
