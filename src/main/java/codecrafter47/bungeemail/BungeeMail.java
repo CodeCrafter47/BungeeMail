@@ -2,17 +2,14 @@ package codecrafter47.bungeemail;
 
 import codecrafter47.util.chat.ChatUtil;
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.chat.ComponentSerializer;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -24,6 +21,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BungeeMail extends Plugin {
 
@@ -147,9 +146,9 @@ public class BungeeMail extends Plugin {
         for (Message message : messages) {
             if (i >= start && i < start + 10) {
                 output.add(new TextComponent("\n"));
-                output.addAll(Arrays.asList(ChatUtil.parseBBCode((message.isRead() ? oldMessageTemplate : newMessageTemplate).
+                String messageTemplate = message.isRead() ? oldMessageTemplate : newMessageTemplate;
+                output.addAll(Arrays.asList(ChatUtil.parseBBCode(replaceTimePlaceholder(messageTemplate, message.getTime()).
                         replace("%sender%", "[nobbcode]" + message.getSenderName() + "[/nobbcode]").
-                        replace("%time%", formatTime(message.getTime())).
                         replace("%id%", "" + message.getId()).
                         replace("%message%", message.getMessage()))));
                 try {
@@ -170,6 +169,32 @@ public class BungeeMail extends Plugin {
         sender.sendMessage(output.toArray(new BaseComponent[0]));
     }
 
+    private String replaceTimePlaceholder(String messageTemplate, long time) {
+        StringBuffer sb = new StringBuffer();
+        Matcher matcher = Pattern.compile("%time(?:_([^%_]+)(?:_([^%]+))?)?%").matcher(messageTemplate);
+        while (matcher.find()) {
+            SimpleDateFormat format = new SimpleDateFormat("hh:mm:ss");
+            TimeZone timeZone = TimeZone.getDefault();
+            String matchedFormat = matcher.group(1);
+            if (matchedFormat != null) {
+                try {
+                    format = new SimpleDateFormat(matchedFormat);
+                } catch (IllegalArgumentException ex) {
+                    getLogger().warning("Invalid date format pattern: \"" + matchedFormat + "\"");
+                }
+            }
+            String matchedTimeZone = matcher.group(2);
+            if (matchedTimeZone != null) {
+                timeZone = TimeZone.getTimeZone(matchedTimeZone);
+            }
+            format.setTimeZone(timeZone);
+            matcher.appendReplacement(sb, format.format(new Date(time)));
+        }
+        matcher.appendTail(sb);
+        messageTemplate = sb.toString();
+        return messageTemplate;
+    }
+
     public void showLoginInfo(ProxiedPlayer player) {
         String loginNewMailsTemplate = messages.loginNewMails;
         try {
@@ -180,10 +205,6 @@ public class BungeeMail extends Plugin {
         } catch (StorageException e) {
             getLogger().log(Level.WARNING, "Failed to show mail notification to " + player.getName(), e);
         }
-    }
-
-    private String formatTime(long time) {
-        return new SimpleDateFormat("hh:mm:ss").format(new Date(time));
     }
 
     public void sendMail(CommandSender sender, String target, String text) {
@@ -209,8 +230,8 @@ public class BungeeMail extends Plugin {
             message = message.replaceAll("(?<link>(?:(https?)://)?([-\\w_\\.]{2,}\\.[a-z]{2,4})(/\\S*)?)", "[url]${link}[/url]");
             storage.saveMessage(sender.getName(), senderUUID, targetUUID, message, false, time);
             sender.sendMessage(ChatUtil.parseBBCode(messages.messageSent
-            .replace("%receiver%", target)
-            .replace("%message%", message)));
+                    .replace("%receiver%", target)
+                    .replace("%message%", message)));
             if (getProxy().getPlayer(targetUUID) != null) {
                 getProxy().getPlayer(targetUUID).sendMessage(ChatUtil.parseBBCode(messages.receivedNewMessage));
             } else if (targetUUID.equals(CONSOLE_UUID)) {
