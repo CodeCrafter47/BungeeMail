@@ -77,17 +77,19 @@ public class PlayerListener implements Listener {
     public void onTabComplete(TabCompleteEvent event) {
         String commandLine = event.getCursor();
         if (commandLine.startsWith("/" + plugin.config.getString("mail_command"))) {
-            event.getSuggestions().clear();
-            String[] split = commandLine.split(" ");
-            String begin = split[split.length - 1];
-            try {
-                for (String player : plugin.getStorage().getKnownUsernames()) {
-                    if (player.contains(begin)) {
-                        event.getSuggestions().add(player);
+            if (plugin.config.getBoolean("enable_tab_complete")) {
+                event.getSuggestions().clear();
+                String[] split = commandLine.split(" ");
+                String begin = split[split.length - 1];
+                try {
+                    for (String player : plugin.getStorage().getKnownUsernames()) {
+                        if (player.contains(begin)) {
+                            event.getSuggestions().add(player);
+                        }
                     }
+                } catch (StorageException e) {
+                    plugin.getLogger().log(Level.WARNING, "An error occurred while accessing usernames for tab completion", e);
                 }
-            } catch (StorageException e) {
-                plugin.getLogger().log(Level.WARNING, "An error occurred while accessing usernames for tab completion", e);
             }
         }
     }

@@ -80,3 +80,6 @@ mysql_password: superSecretPassword
 # deletes all read mails older than cleanup_threshold days
 cleanup_enabled: true
 cleanup_threshold: 7
+
+# enables tab-completion
+enable_tab_complete: true
