@@ -202,7 +202,7 @@ public class MySQLBackend implements IStorageBackend {
     public Collection<UUID> getAllKnownUUIDs() throws StorageException {
         try (Connection connection = dataSource.getConnection()){
             try(Statement statement = connection.createStatement()) {
-                try (ResultSet rs = statement.executeQuery("select uuid from bungeemail_uuids_v2")) {
+                try (ResultSet rs = statement.executeQuery("select distinct uuid from bungeemail_uuids_v2")) {
                     Collection<UUID> uuids = new ArrayList<>();
                     while (rs.next()) {
                         uuids.add(UUID.fromString(rs.getString("uuid")));
@@ -219,7 +219,7 @@ public class MySQLBackend implements IStorageBackend {
     public Collection<String> getKnownUsernames() throws StorageException {
         try (Connection connection = dataSource.getConnection()){
             try(Statement statement = connection.createStatement()) {
-                try (ResultSet rs = statement.executeQuery("select username from bungeemail_uuids_v2")) {
+                try (ResultSet rs = statement.executeQuery("select distinct username from bungeemail_uuids_v2")) {
                     Collection<String> names = new ArrayList<>();
                     while (rs.next()) {
                         names.add(rs.getString("username"));
