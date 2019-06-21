@@ -10,6 +10,7 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -17,9 +18,11 @@ import java.util.logging.Level;
 public class PlayerListener implements Listener {
 
     private BungeeMail plugin;
+    private final TabCompleteCache tabCompleteCache;
 
-    public PlayerListener(BungeeMail plugin) {
+    public PlayerListener(BungeeMail plugin, TabCompleteCache tabCompleteCache) {
         this.plugin = plugin;
+        this.tabCompleteCache = tabCompleteCache;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -77,19 +80,12 @@ public class PlayerListener implements Listener {
     public void onTabComplete(TabCompleteEvent event) {
         String commandLine = event.getCursor();
         if (commandLine.startsWith("/" + plugin.config.getString("mail_command"))) {
-            if (plugin.config.getBoolean("enable_tab_complete")) {
+            if (tabCompleteCache != null) {
                 event.getSuggestions().clear();
-                String[] split = commandLine.split(" ");
-                String begin = split[split.length - 1];
-                try {
-                    for (String player : plugin.getStorage().getKnownUsernames()) {
-                        if (player.contains(begin)) {
-                            event.getSuggestions().add(player);
-                        }
-                    }
-                } catch (StorageException e) {
-                    plugin.getLogger().log(Level.WARNING, "An error occurred while accessing usernames for tab completion", e);
-                }
+                String[] split = commandLine.split(" ", -1);
+                String prefix = split[split.length - 1];
+                event.getSuggestions().addAll(tabCompleteCache.getSuggestions(prefix));
+                Collections.sort(event.getSuggestions(), CaseInsensitiveComparator.INSTANCE);
             }
         }
     }

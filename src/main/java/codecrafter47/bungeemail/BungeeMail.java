@@ -81,8 +81,13 @@ public class BungeeMail extends Plugin {
         // Start metrics
         Metrics metrics = new Metrics(this);
 
+        TabCompleteCache tabCompleteCache = null;
+        if (config.getBoolean("enable_tab_complete")) {
+            tabCompleteCache = new TabCompleteCache(this, storage);
+        }
+
         getProxy().getPluginManager().registerCommand(this, new MailCommand(config.getString("mail_command"), "bungeemail.use", this));
-        getProxy().getPluginManager().registerListener(this, new PlayerListener(this));
+        getProxy().getPluginManager().registerListener(this, new PlayerListener(this, tabCompleteCache));
 
         if (config.getBoolean("cleanup_enabled", false)) {
             getProxy().getScheduler().schedule(this, new Runnable() {
