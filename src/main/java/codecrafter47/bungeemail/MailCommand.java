@@ -61,7 +61,7 @@ public class MailCommand extends Command {
                 }
                 return;
             case "sendall":
-                if (!commandSender.hasPermission("bungeemail.sendall")) {
+                if (!commandSender.hasPermission(Permissions.COMMAND_SENDALL)) {
                     commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.noPermission));
                     return;
                 }
@@ -72,14 +72,14 @@ public class MailCommand extends Command {
                 plugin.sendMailToAll(commandSender, text);
                 return;
             case "reload":
-                if (!commandSender.hasPermission("bungeemail.admin")) {
+                if (!commandSender.hasPermission(Permissions.COMMAND_ADMIN)) {
                     commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.noPermission));
                     return;
                 }
                 plugin.reload();
                 return;
             case "send":
-                if (!commandSender.hasPermission("bungeemail.send")) {
+                if (!commandSender.hasPermission(Permissions.COMMAND_SEND)) {
                     commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.noPermission));
                     return;
                 }
@@ -135,7 +135,7 @@ public class MailCommand extends Command {
                 }
                 return;
             default:
-                if (!commandSender.hasPermission("bungeemail.send")) {
+                if (!commandSender.hasPermission(Permissions.COMMAND_SEND)) {
                     commandSender.sendMessage(ChatUtil.parseBBCode(plugin.messages.help));
                     return;
                 }

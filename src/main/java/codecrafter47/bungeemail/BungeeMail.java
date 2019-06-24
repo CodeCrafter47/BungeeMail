@@ -86,7 +86,7 @@ public class BungeeMail extends Plugin {
             tabCompleteCache = new TabCompleteCache(this, storage);
         }
 
-        getProxy().getPluginManager().registerCommand(this, new MailCommand(config.getString("mail_command"), "bungeemail.use", this));
+        getProxy().getPluginManager().registerCommand(this, new MailCommand(config.getString("mail_command"), Permissions.COMMAND, this));
         getProxy().getPluginManager().registerListener(this, new PlayerListener(this, tabCompleteCache));
 
         if (config.getBoolean("cleanup_enabled", false)) {
