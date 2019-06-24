@@ -1,6 +1,7 @@
 package codecrafter47.bungeemail;
 
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.connection.Connection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -80,12 +81,58 @@ public class PlayerListener implements Listener {
     public void onTabComplete(TabCompleteEvent event) {
         String commandLine = event.getCursor();
         if (commandLine.startsWith("/" + plugin.config.getString("mail_command"))) {
-            if (tabCompleteCache != null) {
-                event.getSuggestions().clear();
-                String[] split = commandLine.split(" ", -1);
-                String prefix = split[split.length - 1];
-                event.getSuggestions().addAll(tabCompleteCache.getSuggestions(prefix));
-                Collections.sort(event.getSuggestions(), CaseInsensitiveComparator.INSTANCE);
+
+            event.getSuggestions().clear();
+
+            Connection sender = event.getSender();
+            if (!(sender instanceof ProxiedPlayer)) {
+                return;
+            }
+            ProxiedPlayer player = (ProxiedPlayer) sender;
+
+            if (player.hasPermission(Permissions.COMMAND)) {
+
+                String[] args = commandLine.split(" ", -1);
+                String prefix = args[args.length - 1];
+
+                if (args.length == 2) {
+                    if ("list".startsWith(prefix)) {
+                        event.getSuggestions().add("list");
+                    }
+                    if ("listall".startsWith(prefix)) {
+                        event.getSuggestions().add("listall");
+                    }
+                    if (player.hasPermission(Permissions.COMMAND_SEND) && "send".startsWith(prefix)) {
+                        event.getSuggestions().add("send");
+                    }
+                    if (player.hasPermission(Permissions.COMMAND_SENDALL) && "sendall".startsWith(prefix)) {
+                        event.getSuggestions().add("sendall");
+                    }
+                    if ("help".startsWith(prefix)) {
+                        event.getSuggestions().add("help");
+                    }
+                    if ("del".startsWith(prefix)) {
+                        event.getSuggestions().add("del");
+                    }
+                    if (player.hasPermission(Permissions.COMMAND_ADMIN) && "reload".startsWith(prefix)) {
+                        event.getSuggestions().add("reload");
+                    }
+                }
+                if (args.length == 3 && "del".equals(args[1])) {
+                    if ("read".equals(prefix)) {
+                        event.getSuggestions().add("read");
+                    }
+                    if ("all".equals(prefix)) {
+                        event.getSuggestions().add("all");
+                    }
+                }
+                if ((args.length == 3 && "send".equals(args[1]))
+                        || (args.length == 2 && event.getSuggestions().isEmpty())) {
+                    if (player.hasPermission(Permissions.COMMAND_SEND) && tabCompleteCache != null) {
+                        event.getSuggestions().addAll(tabCompleteCache.getSuggestions(prefix));
+                        Collections.sort(event.getSuggestions(), CaseInsensitiveComparator.INSTANCE);
+                    }
+                }
             }
         }
     }
