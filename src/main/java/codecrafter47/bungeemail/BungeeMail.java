@@ -27,14 +27,17 @@ import java.util.regex.Pattern;
 public class BungeeMail extends Plugin {
 
     public static final UUID CONSOLE_UUID = new UUID(0, 0);
+    public static final List<String> CONFIG_OPTIONS_THAT_NEED_RELOAD = Arrays.asList("useMySQL", "enable_tab_complete", "mail_command", "mysql_hostname", "mysql_port", "mysql_database", "mysql_username", "mysql_password", "cleanup_enabled", "cleanup_threshold");
 
     Configuration config;
+    Configuration startupConfig;
     Messages messages;
 
     static BungeeMail instance;
 
     @Getter
     private IStorageBackend storage;
+    private Configuration defaultConfig;
 
     @SneakyThrows
     @Override
@@ -53,9 +56,10 @@ public class BungeeMail extends Plugin {
             Files.copy(getResourceAsStream("config.yml"), file.toPath());
         }
 
-        Configuration defaultConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(getResourceAsStream("config.yml"));
+        defaultConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(getResourceAsStream("config.yml"));
 
         config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file, defaultConfig);
+        startupConfig = config;
 
         if (!config.getBoolean("useMySQL")) {
             final FlatFileBackend fileBackend = new FlatFileBackend(this);
@@ -113,7 +117,7 @@ public class BungeeMail extends Plugin {
     @SneakyThrows
     void reload() {
         File file = new File(getDataFolder(), "config.yml");
-        config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
+        config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file, defaultConfig);
         messages = new Messages(config);
     }
 

@@ -1,10 +1,14 @@
 package codecrafter47.bungeemail;
 
 import codecrafter47.util.chat.ChatUtil;
+import com.google.common.base.Joiner;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -77,6 +81,17 @@ public class MailCommand extends Command {
                     return;
                 }
                 plugin.reload();
+                List<String> config_options_reload = new ArrayList<>();
+                for (String option : BungeeMail.CONFIG_OPTIONS_THAT_NEED_RELOAD) {
+                    if (!Objects.equals(plugin.startupConfig.get(option), plugin.config.get(option))) {
+                        config_options_reload.add(option);
+                    }
+                }
+                if (config_options_reload.isEmpty()) {
+                    commandSender.sendMessage(ChatUtil.parseBBCode("&aBungeeMail: &fReload Successfull"));
+                } else {
+                    commandSender.sendMessage(ChatUtil.parseBBCode("&aBungeeMail: &fA restart is required for your changes to the following options to take effect: " + Joiner.on(", ").join(config_options_reload)));
+                }
                 return;
             case "send":
                 if (!commandSender.hasPermission(Permissions.COMMAND_SEND)) {
