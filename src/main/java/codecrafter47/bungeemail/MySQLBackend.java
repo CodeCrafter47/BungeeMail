@@ -31,12 +31,6 @@ public class MySQLBackend implements IStorageBackend {
     }
 
     private void setupDataSource(BungeeMail plugin) {
-        try {
-            Class.forName("com.mysql.jdbc.jdbc2.optional.MysqlDataSource");
-        } catch (ClassNotFoundException var2) {
-            plugin.getLogger().warning("MySQL DataSource class missing: " + var2.getMessage() + ".");
-            throw new RuntimeException("Failed to connect to MySql database");
-        }
         ConnectionFactory connectionFactory = new DriverManagerConnectionFactory("jdbc:mysql://" + plugin.config.getString("mysql_hostname") + ":" + plugin.config.getInt("mysql_port") + "/" + plugin.config.getString("mysql_database"), plugin.config.getString("mysql_username"), plugin.config.getString("mysql_password"));
         PoolableConnectionFactory poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory, null);
         GenericObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<>(poolableConnectionFactory);
